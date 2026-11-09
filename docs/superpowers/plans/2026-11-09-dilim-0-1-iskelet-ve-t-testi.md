@@ -47,7 +47,7 @@
 - Modify: `CLAUDE.md` (yalnız 4. adım gerektirirse)
 
 **Interfaces:**
-- Produces: `devtools::test()` ve `devtools::check()` çalışan paket. Sonraki görevler `Imports` ve `Suggests` ekler.
+- Produces: `devtools::test()` ve `dev\check.ps1` çalışan paket. Sonraki görevler `Imports` ve `Suggests` ekler.
 
 - [ ] **Step 1: Geliştirme paketlerini kur**
 
@@ -71,8 +71,8 @@ Expected: `FAIL 0 | WARN 0 | SKIP 0 | PASS 1`
 
 - [ ] **Step 4: Bu yolda `R CMD check` çalıştır**
 
-Run: `& "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::check(manual = FALSE, error_on = 'warning')"`
-Expected: 0 errors, 0 warnings. Yol boşluk ve `ş` içerdiği için hata çıkarsa dur, kullanıcıya depo taşınmasını sor. Rtools olmadan geçmesi beklenir; Rtools isterse kullanıcıya getir. `manual = FALSE` gerekli çıkarsa `CLAUDE.md` komutunu buna göre düzelt.
+Run: `powershell -ExecutionPolicy Bypass -File dev\check.ps1`
+Expected: 0 errors, 0 warnings (script exits 0). Rtools yok; `devtools::check()` çalışmaz, script `R CMD build` + `R CMD check --no-manual` çalıştırır. Yol boşluk ve `ş` içerdiği için hata çıkarsa dur, kullanıcıya depo taşınmasını sor.
 
 - [ ] **Step 5: Dilim sonu**
 
@@ -136,7 +136,7 @@ Expected: `FAIL 0`.
 
 - [ ] **Step 5: Dilim sonu**
 
-Bağlamsız Claude incelemesi, `devtools::check(manual = FALSE, error_on = 'warning')` 0/0, kullanıcı okuması ve denemesi, devlog. Kullanıcı isterse commit (`feat: add bilingual message lookup`).
+Bağlamsız Claude incelemesi, `dev\check.ps1` 0/0, kullanıcı okuması ve denemesi, devlog. Kullanıcı isterse commit (`feat: add bilingual message lookup`).
 
 ---
 
@@ -334,7 +334,7 @@ Etiketler `msg()` ile gelir. Türkçe etiket "Örneklem" kelimesini içerir. `de
 
 - [ ] **Step 4: Tüm kapıları çalıştır**
 
-Run: `& "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::test(); devtools::check(manual = FALSE, error_on = 'warning')"`
+Run: `& "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::test()"` sonra `powershell -ExecutionPolicy Bypass -File dev\check.ps1`
 Expected: `FAIL 0`; 0 errors, 0 warnings.
 
 - [ ] **Step 5: Dilim sonu**

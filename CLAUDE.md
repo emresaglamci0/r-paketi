@@ -7,10 +7,11 @@ Bu depo, veri toplamadan önce örneklem büyüklüğünü planlayan ve gerekçe
 - R 4.6.1 `PATH`'te değil. Her zaman tam yol kullan: `D:\R-4.6.1\bin\Rscript.exe`.
 - Depo yolu boşluk ve `ş` içerir. Yolları tırnakla.
 - R paketlerini `lib = "D:/R-4.6.1/library"` ile kur. Proje çıktılarını D sürücüsünde tut, C sürücüsüne yazma.
+- Rtools yok; `devtools::check()` çalışmaz, `dev\check.ps1` kullan.
 
 ```powershell
 & "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::test()"
-& "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::check()"
+powershell -ExecutionPolicy Bypass -File dev\check.ps1
 & "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::document()"
 ```
 
@@ -36,7 +37,7 @@ Her dilim tek daldır ve yaklaşık 150 satır kod hedefler. Aşarsa böl.
 2. Testleri önce yaz.
 3. Kodu dalda yaz.
 4. Bağlamsız yeni bir Claude ajanı yalnız belgeleri ve diff'i görerek incelesin.
-5. `devtools::test()` ve `devtools::check()` geçmeden kullanıcıya getirme. Hedef 0 hata, 0 uyarı.
+5. `devtools::test()` ve `dev\check.ps1` geçmeden kullanıcıya getirme. Hedef 0 hata, 0 uyarı.
 6. Kullanıcı ders düzeyinde R biliyor. Kısa Türkçe anlatım ver: her fonksiyon ne yapar, neden böyle yazıldı, istatistik neye dayanıyor.
 7. Kullanıcının konsolda deneyeceği 2-3 örnek ve bilerek hatalı bir girdi ver.
 8. Kullanıcı bir anlama sorusu yanıtlasın ya da küçük bir değişiklik yaptırsın.
