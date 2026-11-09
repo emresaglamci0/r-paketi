@@ -14,3 +14,8 @@
 
 - **Ajan doğru yaptı:** Hesabı `pwrss`'e bıraktı, düzeltme sırasını doğru uyguladı, referanslarla ±1 içinde kaldı. Görev incelemesi planın n=2 alt sınırındaki hatayı yakaladı.
 - **Ajan kaçırdı:** Testler geçmesine rağmen genel inceleme 7 kullanıcı hatası buldu: `alternative = "greater"` ham hata veriyordu, `pwrss` güç aralığı planlamada atlanmıştı, `n_effective` kayan nokta hatasıyla bir eksik çıkıyordu. Bir düzeltme de `alpha` kelimesini bozuk karakterle yazdı.
+
+## Dilim 2: Türkçe/İngilizce yöntem metni (2026-11-09)
+
+- **Ajan doğru yaptı:** Metni CSV'den kurdu, sayıları ek hesap yapmadan biçimlendirdi, kullanıcı metnini biçim dizgesine sokmadı.
+- **Ajan kaçırdı:** Planın kendi metni iki yanlış ifade içeriyordu: ilgilenilen en küçük etkiye "beklenen" diyordu, kaynak verilmişken "dayanağı belirtilmemiştir" yazıyordu. Testler bunları yakalayamadı, çünkü beklenen metin de plandan geliyordu; genel inceleme buldu. Son turda iki test koddan sonra yazıldı, bilerek bozma denemesi testlerin çalıştığını gösterdi.

@@ -44,3 +44,15 @@ err_power_range,Argument '%s' must be a single number from 0.01 to 0.99.,Argüma
 err_power_alpha,Target power must be greater than alpha.,Hedef güç alpha değerinden büyük olmalı.
 err_overflow,"The required sample size is too large to represent (over about 2.1 billion in total). Check effect and deff.","Gereken örneklem büyüklüğü gösterilemeyecek kadar büyük (toplam yaklaşık 2,1 milyarı aşıyor). effect ve deff değerlerini kontrol edin."
 err_effect_source,Argument '%s' must be NULL or a single string.,Argüman '%s' NULL ya da tek bir metin olmalı.
+m_intro,"An a priori power analysis for an %s was conducted in R with the plansize package (version %s), using pwrss (version %s).","Örneklem büyüklüğü, %s için R ortamında plansize (sürüm %s) ve pwrss (sürüm %s) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir."
+m_effect,"The effect size used for planning was Cohen's d = %s%s.","Planlamada etki büyüklüğü Cohen d = %s olarak alınmıştır%s."
+m_basis_unknown,The rationale for choosing this effect size was not specified.,Bu etki büyüklüğünün seçilme gerekçesi belirtilmemiştir.
+m_basis_prior_study,This value was taken from a prior study.,Bu değer önceki bir çalışmadan alınmıştır.
+m_basis_pilot,This value was estimated from a pilot study.,Bu değer bir pilot çalışmanın verilerinden kestirilmiştir.
+m_basis_smallest_of_interest,This value is the smallest effect size of interest.,Bu değer ilgilenilen en küçük etki büyüklüğüdür.
+m_basis_convention,This value follows a conventional benchmark rather than study-specific evidence.,Bu değer çalışmaya özgü kanıt yerine yerleşik bir ölçüte dayanmaktadır.
+m_basis_observed,This value was observed in the current data.,Bu değer mevcut veride gözlenmiştir.
+m_result,"For a %s test with alpha = %s and power = %s, the required sample size was %s participants per group (%s in total).","Alfa = %2$s, güç = %3$s ve %1$s test için gerekli örneklem büyüklüğü grup başına %4$s, toplamda %5$s katılımcıdır."
+m_adjust_dropout,"Allowing for an expected dropout rate of %s%%, the recruitment target was %s participants per group (%s in total).","Beklenen kayıp oranı %%%s varsayıldığında hedeflenen katılımcı sayısı grup başına %s, toplamda %s olarak belirlenmiştir."
+m_adjust_deff,"Allowing for a design effect of %s, the recruitment target was %s participants per group (%s in total).","Tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı grup başına %s, toplamda %s olarak belirlenmiştir."
+m_adjust_both,"Allowing for an expected dropout rate of %s%% and a design effect of %s, the recruitment target was %s participants per group (%s in total).","Beklenen kayıp oranı %%%s ve tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı grup başına %s, toplamda %s olarak belirlenmiştir."
