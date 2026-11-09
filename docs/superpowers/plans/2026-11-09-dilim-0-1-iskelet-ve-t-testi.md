@@ -28,6 +28,7 @@
 - Dönüş: `class = c("pwrss","t","student")`; alanlar `$n` (adlı, uzunluk 2), `$n.total`, `$power`, `$d`.
 - d=0.5, güç=.80: `$n = c(64, 64)`, gerçek güç 0.8014596. n2=64, güç=.80, `d = NULL`: `$d = 0.4990692`.
 - Referanslar: `stats::power.t.test` 63.76576, `pwr::pwr.t.test` 63.76561, `pwr` ile n=64 için d 0.499072.
+- pwrss `power` değerini yalnız 0.01 ile 0.99 arasında kabul eder; n arama aralığı 4 ile `1e10` arasındadır (dışı "not feasible" hatası verir).
 - Spec'teki açık soru kapandı: `power.chisq.test` ve `power.f.regression` dışa aktarılıyor. Kullanım testleri Dilim 8 ve 9'da.
 
 ## Review Focus
@@ -35,7 +36,7 @@
 - `effect` 0, negatif, `NA` ya da uzunluğu 2 ise anlaşılır hata (Task 3).
 - `alpha` veya `power` 0, 1, aralık dışı ya da metin ise anlaşılır hata (Task 3).
 - `dropout = 1`, `dropout < 0` ya da `deff < 1` ise sıfıra bölme yerine anlaşılır hata (Task 3).
-- `sensitivity()` içinde kayıp ve DEFF sonrası grup başına etkili n 2'nin altına düşerse `pwrss` hatası yerine anlaşılır hata (Task 4).
+- `sensitivity()` içinde kayıp ve DEFF sonrası grup başına etkili n 3'ün altına düşerse `pwrss` hatası yerine anlaşılır hata (Task 4).
 - Geçersiz `lang` hata verir; Türkçe harfler Windows'ta bozulmadan yazdırılır (Task 2 ve 5).
 
 ---
@@ -250,7 +251,7 @@ Expected: `FAIL 0`. Kıyas ±1'i aşarsa dur, kullanıcıya getir.
 
 **Interfaces:**
 - Consumes: `engine_mde()`, `plansize_plan`.
-- Produces: `sensitivity(plan, n = NULL, power = c(0.80, 0.90, 0.95))` (dışa aktarılır). Dönüş `c("plansize_sensitivity", "data.frame")`, sütunlar `n_recruited, n_effective, power, mde`. `n` işe alınan grup başı sayıdır, `NULL` ise `plan$n_per_group`. `n_effective = floor(n * (1 - dropout) / deff)`.
+- Produces: `sensitivity(plan, n = NULL, power = c(0.80, 0.90, 0.95))` (dışa aktarılır). Dönüş `c("plansize_sensitivity", "data.frame")`, sütunlar `n_recruited, n_effective, power, mde`. `n` işe alınan grup başı sayıdır, `NULL` ise `plan$n_per_group`. `n_effective = floor(n * (1 - dropout) / deff + 1e-9)`.
 
 - [ ] **Step 1: Başarısız testleri yaz**
 
@@ -286,7 +287,7 @@ Expected: FAIL.
 
 - [ ] **Step 3: `sensitivity()` yaz**
 
-`expand.grid(n, power)` üzerinden `engine_mde()`. `n_effective < 2` ise hata. `power` da `check_probability()` ile denetlenir.
+`expand.grid(n, power)` üzerinden `engine_mde()`. `n_effective < 3` ise hata. `power` da `check_probability()` ile denetlenir.
 
 - [ ] **Step 4: Testi çalıştır**
 

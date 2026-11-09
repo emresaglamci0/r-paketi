@@ -9,3 +9,8 @@
 
 - **Ajan doğru yaptı:** Testleri önce yazdı, CSV'yi BOM'suz UTF-8 kaydetti, hata yollarını `msg()` döngüsüne sokmadı.
 - **Ajan kaçırdı:** Test dosyasına ASCII dışı `Örneklem şığ` yazdı ve raporunda bahsetmedi. Bağımsız inceleme yakaladı, `R CMD check` yakalamamıştı.
+
+## Dilim 1b: bağımsız t testi planı ve duyarlılık (2026-11-09)
+
+- **Ajan doğru yaptı:** Hesabı `pwrss`'e bıraktı, düzeltme sırasını doğru uyguladı, referanslarla ±1 içinde kaldı. Görev incelemesi planın n=2 alt sınırındaki hatayı yakaladı.
+- **Ajan kaçırdı:** Testler geçmesine rağmen genel inceleme 7 kullanıcı hatası buldu: `alternative = "greater"` ham hata veriyordu, `pwrss` güç aralığı planlamada atlanmıştı, `n_effective` kayan nokta hatasıyla bir eksik çıkıyordu. Bir düzeltme de `alpha` kelimesini bozuk karakterle yazdı.

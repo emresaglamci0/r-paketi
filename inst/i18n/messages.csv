@@ -1,3 +1,46 @@
 key,en,tr
 probe,Sample sizing,Örneklem şığ
 probe_n,n = %s,n = %s
+err_positive,Argument '%s' must be a single positive finite number.,Argüman '%s' tek bir pozitif sonlu sayı olmalı.
+err_probability,Argument '%s' must be a single number strictly between 0 and 1.,Argüman '%s' 0 ile 1 arasında (uç değerler hariç) tek bir sayı olmalı.
+err_dropout,Argument '%s' must be a single number from 0 (inclusive) up to but not including 1.,Argüman '%s' 0 (dahil) ile 1 (hariç) arasında tek bir sayı olmalı.
+err_deff,Argument '%s' must be a single number >= 1.,Argüman '%s' 1 veya daha büyük tek bir sayı olmalı.
+err_test,Unsupported test: '%s'. Only 't_independent' is available.,Desteklenmeyen test: '%s'. Yalnızca 't_independent' kullanılabilir.
+err_plan,Argument '%s' must be a plansize_plan created by plan_study().,Argüman '%s' plan_study() ile oluşturulmuş bir plansize_plan olmalı.
+err_n_small,Effective n per group is below 3 for n = %s after dropout and design effect.,n = %s için kayıp ve tasarım etkisi sonrası etkin grup başı n 3'ten küçük.
+err_infeasible,"The design cannot be computed with these settings. Raise n, increase alpha or lower the target power.","Tasarım bu ayarlarla hesaplanamıyor. n değerini artırın, alpha değerini büyütün veya hedef gücü düşürün."
+plan_title,Sample size plan,Örneklem büyüklüğü planı
+plan_n_group,Sample size to recruit per group (includes dropout and design effect): %s,Grup başına alınması gereken örneklem (kayıp ve tasarım etkisi dahil): %s
+plan_n_total,Total sample size to recruit (includes dropout and design effect): %s,Gerekli toplam örneklem (kayıp ve tasarım etkisi dahil): %s
+plan_test,Test: %s,Test: %s
+plan_effect,Expected effect size (Cohen's d): %s,Beklenen etki büyüklüğü (Cohen d): %s
+plan_basis,Basis of the effect size: %s,Etki büyüklüğünün dayanağı: %s
+plan_source,Source of the effect size: %s,Etki büyüklüğünün kaynağı: %s
+plan_alpha,Significance level (alpha): %s,Anlamlılık düzeyi (alfa): %s
+plan_power,Target power: %s,Hedef güç: %s
+plan_alt,Alternative hypothesis: %s,Alternatif hipotez: %s
+plan_dropout,Expected dropout: %s%%,Beklenen kayıp oranı: %%%s
+plan_deff,Design effect: %s,Tasarım etkisi: %s
+plan_method,Calculation method: %s (pwrss %s),Hesaplama yöntemi: %s (pwrss %s)
+val_t_independent,independent two-sample t test,bağımsız iki örneklem t testi
+val_unknown,unknown,bilinmiyor
+val_prior_study,prior study,önceki çalışma
+val_pilot,pilot study,pilot çalışma
+val_smallest_of_interest,smallest effect of interest,ilgilenilen en küçük etki
+val_convention,convention,"yerleşik ölçüt (ör. Cohen eşikleri)"
+val_observed,observed in current data,mevcut veride gözlenen
+val_two.sided,two-sided,iki yönlü
+val_one.sided,one-sided,tek yönlü
+sens_title,Smallest detectable effect (Cohen's d),Saptanabilir en küçük etki (Cohen d)
+col_n_recruited,Recruited per group,Grup başına alınan
+col_n_effective,Effective per group,Grup başına etkin
+col_power,Power,Güç
+col_mde,Smallest detectable effect,Saptanabilir en küçük etki
+err_infeasible_plan,"pwrss cannot solve this design: the required n per group is under 4 (very large effect) or over 10 billion (extremely small effect). Check effect, alpha and power.","pwrss bu tasarımı çözemiyor: grup başına gereken n 4'ten küçük (çok büyük etki) ya da 10 milyardan büyük (çok küçük etki). effect, alpha ve power değerlerini kontrol edin."
+err_choice,"Argument '%s' must be one of: %s.%s","Argüman '%s' şunlardan biri olmalı: %s.%s"
+hint_alternative," Write ""greater"" and ""less"" as ""one.sided""; the direction is not chosen here."," ""greater"" ve ""less"" için ""one.sided"" yazın; yön burada seçilmez."
+err_missing,Argument '%s' is required.,Argüman '%s' zorunlu.
+err_power_range,Argument '%s' must be a single number from 0.01 to 0.99.,Argüman '%s' 0.01 ile 0.99 arasında tek bir sayı olmalı.
+err_power_alpha,Target power must be greater than alpha.,Hedef güç alpha değerinden büyük olmalı.
+err_overflow,"The required sample size is too large to represent (over about 2.1 billion in total). Check effect and deff.","Gereken örneklem büyüklüğü gösterilemeyecek kadar büyük (toplam yaklaşık 2,1 milyarı aşıyor). effect ve deff değerlerini kontrol edin."
+err_effect_source,Argument '%s' must be NULL or a single string.,Argüman '%s' NULL ya da tek bir metin olmalı.
