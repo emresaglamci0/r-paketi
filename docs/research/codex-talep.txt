@@ -1,0 +1,39 @@
+# Kullanıcı talebi araştırması: tez araştırmacıları için istatistik iş akışı
+
+**Kısa sonuç:** Araştırmacıların örneklem büyüklüğünü hesaplarken, uygun etki büyüklüğünü seçerken ve sonuçları doğru raporlarken desteğe ihtiyacı olduğuna dair güçlü işaretler var. Ancak Türk tez yazarlarının R kullanıp kullanmadığına dair kanıt, böyle bir paketin erişimini sorgulatıyor: Türkiye’de eğitim yayınlarını inceleyen bir çalışmada R, taranan 1.627 makalenin yalnızca birinde görülmüş. **[doğrulandı: belgeyi okudum]** [Çalışma kaydı](https://openaccess.marmara.edu.tr/entities/publication/ce6ec7c2-36cf-406b-877f-3f586e6cba24)
+
+## Tekrarlayan sıkıntılar — sıklık ve şiddete göre
+
+1. **Etki büyüklüğünü belirleyememe ve örneklem hesabının varsayımlarını temellendirememe — çok sık, yüksek şiddet.** Tez önerisi ve etik kurul aşamasında kullanıcılar “hangi etki büyüklüğünü girmeliyim?” diye soruyor; mevcut çalışmaların örneklem sayılarını kopyalamanın doğru olup olmadığından emin değiller. Bir kullanıcı, “I am not familiar with power analysis and sample sizes” diyerek ilişkisel tasarım ve moderasyon için yardım istiyor. **[doğrulandı: belgeyi okudum]** [Tez için örneklem sorusu](https://www.reddit.com/r/AskStatistics/comments/1qp5qiw/determining_sample_size/) · [Regresyon/ANOVA’da etki büyüklüğü sorusu](https://www.reddit.com/r/AskStatistics/comments/1jv4pb1)
+
+2. **Toplanan ya da kısıtlı örneklemi sonradan savunma — daha seyrek, çok yüksek şiddet.** “38 örneklem yetersiz” gerekçesiyle reddedilen bir çalışma yazarı, anlamlı korelasyon ve p değerlerinin yeterliliği gösterdiğini sanmış. Küçük deney örneklemini revizyon aşamasında gerekçelendirmeye çalışan tez yazarı da destek arıyor. Bu örnekler, hesaplama kadar yanlış güveni önleme ve sınırlılığı dürüstçe anlatma ihtiyacına işaret ediyor. **[doğrulandı: belgeyi okudum]** [Red ve yetersiz örneklem sorusu](https://www.reddit.com/r/AskStatistics/comments/1i2j6k5) · [Tez revizyonunda örneklem gerekçesi](https://www.reddit.com/r/statistics/comments/v1h3s0)
+
+3. **Araştırma tasarımına uygun testi ve raporlamayı seçememe — sık, orta-yüksek şiddet.** Kullanıcılar G*Power’da hangi testi seçecekleri, sürekli ölçümler veya moderasyon için hesabı nasıl kuracakları konusunda zorlanıyor. Post hoc güç analizi ile duyarlılık analizini de karıştırabiliyorlar. **[doğrulandı: belgeyi okudum]** [G*Power ve klinik tez sorusu](https://www.reddit.com/r/AskStatistics/comments/1hxbd74) · [Post hoc güç yerine duyarlılık analizi tartışması](https://www.reddit.com/r/AcademicPsychology/comments/1bcbgz5)
+
+4. **Bulguları APA biçiminde eksiksiz yazma — görünür gereklilik, talep sıklığı için sınırlı doğrudan kanıt.** APA, uygun olduğunda kesin p değerleri, etki büyüklükleri ve %95 güven aralıklarını ister; STROBE çalışma büyüklüğünün nasıl belirlendiğinin açıklanmasını önerir. **[doğrulandı: belgeyi okudum]** [APA standartları](https://www.apa.org/pubs/journals/resources/standards-disclosures) · [STROBE kontrol listesi](https://www.strobe-statement.org/fileadmin/Strobe/uploads/checklists/STROBE_checklist_v4_combined.pdf)
+
+## Kurum ve yayın baskısı
+
+APA JARS nicel raporlama standartları sonuçlarda etki büyüklüğü ve güven aralıklarını kapsıyor. CONSORT 2025, örneklem hesabının dayandığı varsayımların raporlanmasını istiyor; STROBE çalışma boyutunun nasıl belirlendiğini açıklatıyor. **[doğrulandı: belgeyi okudum]** [APA JARS](https://apastyle.apa.org/jars/index) · [CONSORT 2025 açıklaması](https://www.bmj.com/content/389/bmj-2024-081124) · [STROBE](https://www.strobe-statement.org/)
+
+Türkiye’de en azından bazı kurumların etik kurul ve dergi süreçlerinde bu beklentiler somut. Süleyman Demirel Üniversitesi, örneklem hesabında yöntem ve parametrelerin belirtilmesini istiyor; Türkiye Sağlık Araştırmaları Dergisi de birincil değişken, test ve etki büyüklüğü ayrıntılarını talep ediyor. **[doğrulandı: belgeyi okudum]** [SDÜ etik kurul belgeleri](https://tipetik.sdu.edu.tr/tr/basvuru-formlari/etik-kurul-basvuru-formlari-1174s.html) · [Dergi raporlama kuralları](https://dergipark.org.tr/tr/pub/tjhr/writing-rules)
+
+TÜBİTAK’ın tarım-orman eğitici sunumu örneklem/deneme büyüklüğü, analiz edilecek örnek ve tekerrür ayrıntılarını yöntem bölümünde istiyor; bu bulgu, bütün TÜBİTAK programlarının aynı şartı koyduğu anlamına gelmez. **[doğrulandı: belgeyi okudum]** [TÜBİTAK sunumu](https://www.tubitak.gov.tr/sites/default/files/18842/tovag_tarim-orman_egitici_sunumu.pdf). YÖK’ün tüm tezleri için tek tip güç analizi zorunluluğu bulunduğunu doğrulayan bir kaynak bulamadım.
+
+## Türkiye’deki sinyaller ve R erişim riski
+
+Türkiye kaynaklı dört eğitim dergisindeki 2007–2011 makalelerini inceleyen çalışmada, etki büyüklüğü raporlanabilecek 480 makalenin yalnızca 35’inde (%7,2) raporlama, 21’inde yorumlama bulunmuş. **[doğrulandı: belgeyi okudum]** [Özsoy & Özsoy, 2013](https://dergipark.org.tr/en/pub/ilkonline/article/106644). Bu eski ve yalnızca eğitim alanını kapsayan bulgudur; güncel Türkiye geneline oran olarak yorumlanmamalı. Sağlık alanındaki bir çalışma da Türkiye merkezli ortopedi makalelerinde güç/örneklem sorunlarına işaret ediyor, ancak burada erişilen özet genel raporlama oranı vermiyor. **[arama özeti]** [Çalışma kaydı](https://www.turkiyeklinikleri.com/article/en-evaluation-of-the-sample-size-and-power-analysis-of-the-research-articles-published-in-turkey-centered-sci-e-indexed-journals-of-orthopedics-and-traumatology-71315.html)
+
+R kullanımına ilişkin karşılaştırma kanıtı da sınırlı ve eski: 2010–2014 dönemindeki üç SSCI eğitim dergisinde, 1.627 makalenin yalnızca biri R kullanmış; SPSS ve LISREL daha yaygınmış. **[doğrulandı: belgeyi okudum]** [Çalışma kaydı](https://openaccess.marmara.edu.tr/entities/publication/ce6ec7c2-36cf-406b-877f-3f586e6cba24). Bu yayın örneklemi, günümüzdeki bütün tez yazarlarının yazılım tercihini ölçmez; yine de hedef kitlenin doğrudan R kullanacağı varsayımını zayıflatır.
+
+Ücretli analiz hizmetleri pazarın görünür bir ihtiyaç alanı olduğunu düşündürüyor: bir hizmet sağlayıcı temel analiz için 2.999,90 TL’den başlayan fiyat yayımlıyor ve Türkçe/İngilizce akademik raporlama sunuyor. **[doğrulandı: belgeyi okudum]** [Fiyat listesi](https://www.leyastat.com/istatistik-analiz-ucretleri/). Bu ticari sayfalar bağımsız pazar büyüklüğü veya yaygınlık ölçümü değildir.
+
+## En büyük risk: hedef kitle R kullanmıyorsa
+
+Paket R kodu veya RStudio deneyimi varsayarsa, sorunu yaşayan tez yazarlarına erişemeyebilir. **[çıkarım]** Önce R kullanan araştırmacılar ve danışmanlarla doğrulama yapmak; geniş erişim hedefleniyorsa web tabanlı **Shiny** arayüzünü ya da **jamovi** modülünü pilot olarak değerlendirmek mantıklı. jamovi’nin R tabanlı olması teknik bir entegrasyon olanağıdır; Türkiye’de talep gördüğünü kanıtlamaz. **[çıkarım]** [jamovi bilgisi](https://en.wikipedia.org/wiki/Jamovi)
+
+## Sinyal gücü ve kapsam sınırı
+
+CRAN’da `pwr` örneklem/güç hesabı, `effectsize` ise çok sayıda etki büyüklüğü ölçüsü için mevcut paketler; `pwr` için üçüncü taraf bir izleyici 30 günde 31.467 CRAN indirmesi bildiriyor. **[doğrulandı: sayfayı okudum]** [pwr](https://cran.rstudio.com/web/packages/pwr/index.html) · [effectsize](https://cran.r-project.org/web/packages/effectsize/index.html) · [pwr indirme izlemesi](https://observe.rstats.dev/cran/pwr). Bu rakam kullanıcı sayısı değildir ve Türkiye’ye göre ayrıştırılmaz; `cranlogs` da indirmeleri sayar, benim aramamda hedef paketler için güvenilir güncel toplam alınamadı. **[doğrulandı: belgeyi okudum]** [CRAN Logs API](https://cranlogs.r-pkg.org/)
+
+**Ürün sinyali:** En güçlü fırsat yalnızca hesaplama değil; kullanıcıyı tasarım–test–varsayım–örneklem–yorum zincirinde yönlendirmek, geçersiz/sonradan kurulmuş gerekçeleri uyarmak ve doğru Türkçe/İngilizce rapor metni üretmek. Türkiye’deki gerçek erişim için R dışı bir arayüzün gerekip gerekmediği ise ilk kullanıcı testinde ölçülmeli.
