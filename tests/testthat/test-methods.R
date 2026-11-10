@@ -3,9 +3,10 @@ ver <- function() as.character(utils::packageVersion("plansize"))
 test_that("full English paragraph for a basic plan", {
   p <- quiet_plan(effect = 0.5)
   expected <- paste0(
-    "An a priori power analysis for an independent two-sample t test was conducted in R ",
-    "with the plansize package (version ", ver(), "), using pwrss (version ",
-    p$engine_version, "). The effect size used for planning was Cohen's d = 0.50. ",
+    "An a priori power analysis was conducted in R with the plansize package (version ",
+    ver(), "), using pwrss (version ", p$engine_version, "), to determine the sample size ",
+    "required for the planned analysis (independent two-sample t test). ",
+    "The effect size used for planning was Cohen's d = 0.50. ",
     "The rationale for choosing this effect size was not specified. For a two-sided test with ",
     "alpha = .05 and power = .80, the required sample size was 64 participants ",
     "per group (128 in total).")

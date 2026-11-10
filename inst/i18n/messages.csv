@@ -5,9 +5,8 @@ err_positive,Argument '%s' must be a single positive finite number.,Argüman '%s
 err_probability,Argument '%s' must be a single number strictly between 0 and 1.,Argüman '%s' 0 ile 1 arasında (uç değerler hariç) tek bir sayı olmalı.
 err_dropout,Argument '%s' must be a single number from 0 (inclusive) up to but not including 1.,Argüman '%s' 0 (dahil) ile 1 (hariç) arasında tek bir sayı olmalı.
 err_deff,Argument '%s' must be a single number >= 1.,Argüman '%s' 1 veya daha büyük tek bir sayı olmalı.
-err_test,Unsupported test: '%s'. Only 't_independent' is available.,Desteklenmeyen test: '%s'. Yalnızca 't_independent' kullanılabilir.
 err_plan,Argument '%s' must be a plansize_plan created by plan_study().,Argüman '%s' plan_study() ile oluşturulmuş bir plansize_plan olmalı.
-err_n_small,Effective n per group is below 3 for n = %s after dropout and design effect.,n = %s için kayıp ve tasarım etkisi sonrası etkin grup başı n 3'ten küçük.
+err_n_small,Effective n is below %2$s for n = %1$s after dropout and design effect.,n = %1$s için kayıp ve tasarım etkisi sonrası etkin n en az %2$s olmalı.
 err_infeasible,"The design cannot be computed with these settings. Raise n, increase alpha or lower the target power.","Tasarım bu ayarlarla hesaplanamıyor. n değerini artırın, alpha değerini büyütün veya hedef gücü düşürün."
 plan_title,Sample size plan,Örneklem büyüklüğü planı
 plan_n_group,Sample size to recruit per group (includes dropout and design effect): %s,Grup başına alınması gereken örneklem (kayıp ve tasarım etkisi dahil): %s
@@ -43,7 +42,7 @@ err_power_range,Argument '%s' must be a single number from 0.01 to 0.99.,Argüma
 err_power_alpha,Target power must be greater than alpha.,Hedef güç alpha değerinden büyük olmalı.
 err_overflow,"The required sample size is too large to represent (over about 2.1 billion in total). Check effect and deff.","Gereken örneklem büyüklüğü gösterilemeyecek kadar büyük (toplam yaklaşık 2,1 milyarı aşıyor). effect ve deff değerlerini kontrol edin."
 err_effect_source,Argument '%s' must be NULL or a single string.,Argüman '%s' NULL ya da tek bir metin olmalı.
-m_intro,"An a priori power analysis for an %s was conducted in R with the plansize package (version %s), using pwrss (version %s).","Örneklem büyüklüğü, %s için R ortamında plansize (sürüm %s) ve pwrss (sürüm %s) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir."
+m_intro,"An a priori power analysis was conducted in R with the plansize package (version %2$s), using pwrss (version %3$s), to determine the sample size required for the planned analysis (%1$s).","Örneklem büyüklüğü, %s için R ortamında plansize (sürüm %s) ve pwrss (sürüm %s) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir."
 m_effect,"The effect size used for planning was Cohen's d = %s%s.","Planlamada etki büyüklüğü Cohen d = %s olarak alınmıştır%s."
 m_basis_unknown,The rationale for choosing this effect size was not specified.,Bu etki büyüklüğünün seçilme gerekçesi belirtilmemiştir.
 m_basis_prior_study,This value was taken from a prior study.,Bu değer önceki bir çalışmadan alınmıştır.
@@ -57,3 +56,18 @@ m_adjust_both,"Allowing for an expected dropout rate of %s%% and a design effect
 err_observed,"effect_basis = ""observed"" is not allowed: an effect observed in the current data cannot justify the sample size of the same data. Use sensitivity() to report the smallest effect your sample can detect.","effect_basis = ""observed"" kullanılamaz: mevcut veride gözlenen etki aynı verinin örneklem büyüklüğünü gerekçelendiremez. Örneklemin saptayabileceği en küçük etkiyi raporlamak için sensitivity() kullanın."
 warn_unknown,"The basis of the effect size is unknown. Set effect_basis to ""prior_study"", ""pilot"" or ""smallest_of_interest""; otherwise the methods text will state that the rationale was not specified.","Etki büyüklüğünün dayanağı bilinmiyor. effect_basis değerini ""prior_study"", ""pilot"" ya da ""smallest_of_interest"" olarak belirtin; aksi hâlde yöntem metninde bu etki büyüklüğünün seçilme gerekçesinin belirtilmediği yazılacaktır."
 warn_convention,"The effect size rests on a conventional benchmark rather than study-specific evidence. Prefer a prior study, a pilot study or the smallest effect of interest.","Etki büyüklüğü çalışmaya özgü kanıt yerine yerleşik bir ölçüte dayanıyor. Önceki bir çalışmayı, pilot çalışmayı ya da ilgilenilen en küçük etkiyi tercih edin."
+err_r,Argument 'r' must be a single number strictly between -1 and 1.,Argüman 'r' -1 ile 1 arasında (uç değerler hariç) tek bir sayı olmalı.
+err_r_unused,"Argument 'r' is used only with test = ""t_paired"".","Argüman 'r' yalnız test = ""t_paired"" ile kullanılır."
+val_t_paired,paired t test,bağımlı örneklemler t testi
+plan_r,Correlation between the two measurements (r): %s,İki ölçüm arasındaki korelasyon (r): %s
+plan_dz,Effect size used in the test (Cohen's dz): %s,Testte kullanılan etki büyüklüğü (Cohen dz): %s
+plan_n_group_t_paired,Participants to recruit (each measured twice; includes dropout and design effect): %s,Alınması gereken katılımcı sayısı (her biri iki kez ölçülür; kayıp ve tasarım etkisi dahil): %s
+sens_title_t_paired,"Smallest detectable effect (Cohen's d, assuming the same r)","Saptanabilir en küçük etki (Cohen d, aynı r varsayılarak)"
+col_n_recruited_t_paired,Recruited participants,Alınan katılımcı
+col_n_effective_t_paired,Effective participants,Etkin katılımcı
+m_effect_t_paired,"The effect size used for planning was Cohen's d = %s%s, defined as the mean change divided by the standard deviation of a single measurement; with an assumed correlation of r = %s between the two measurements, this corresponds to dz = %s.","Planlamada etki büyüklüğü, ortalama değişimin tek bir ölçümün standart sapmasına oranı olarak tanımlanan Cohen d = %s olarak alınmıştır%s; iki ölçüm arasındaki korelasyon r = %s varsayıldığında bu değer dz = %s değerine karşılık gelmektedir."
+m_result_t_paired,"For a %s test with alpha = %s and power = %s, the required sample size was %s participants, each measured twice.","Alfa = %2$s, güç = %3$s ve %1$s test için gerekli örneklem büyüklüğü, her biri iki kez ölçülecek %4$s katılımcıdır."
+m_adjust_dropout_t_paired,"Allowing for an expected dropout rate of %s%%, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_adjust_deff_t_paired,"Allowing for a design effect of %s, the recruitment target was %s participants.",Tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_adjust_both_t_paired,"Allowing for an expected dropout rate of %s%% and a design effect of %s, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s ve tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+err_infeasible_plan_t_paired,"pwrss cannot solve this design: the required number of participants is under 4 or over 10 billion. A very high r makes dz much larger than d; check effect, r, alpha and power.","pwrss bu tasarımı çözemiyor: gereken katılımcı sayısı 4'ten küçük ya da 10 milyardan büyük. Çok yüksek bir r, dz değerini d'den çok daha büyük yapar; effect, r, alpha ve power değerlerini kontrol edin."

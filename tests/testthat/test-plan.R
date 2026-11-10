@@ -20,7 +20,7 @@ test_that("invalid inputs give readable errors", {
   expect_error(plan_study(effect = 0.5, dropout = 1), "dropout")
   expect_error(plan_study(effect = 0.5, dropout = -0.1), "dropout")
   expect_error(plan_study(effect = 0.5, deff = 0.9), "deff")
-  expect_error(plan_study(test = "anova", effect = 0.5), "anova")
+  expect_error(plan_study(test = "anova", effect = 0.5), "t_paired", fixed = TRUE)
 })
 test_that("engine prints nothing", {
   expect_output(quiet_plan(effect = 0.5), NA)

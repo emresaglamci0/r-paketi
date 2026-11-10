@@ -7,6 +7,7 @@
 plan_study(
   test = "t_independent",
   effect,
+  r = NULL,
   effect_basis = c("unknown", "prior_study", "pilot", "smallest_of_interest",
     "convention", "observed"),
   effect_source = NULL,
@@ -18,9 +19,15 @@ plan_study(
 )
 }
 \arguments{
-\item{test}{Test name. Only \code{"t_independent"} is supported.}
+\item{test}{\code{"t_independent"} (default) or \code{"t_paired"}.}
 
-\item{effect}{Standardized effect (Cohen's d), positive single number.}
+\item{effect}{Standardized effect (Cohen's d), positive single number. For
+\code{"t_paired"}, d is the mean change divided by the SD of one measurement (pre and
+post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.}
+
+\item{r}{Correlation between the two repeated measures, strictly between -1 and 1.
+Required for \code{"t_paired"} (d is converted to dz = d / sqrt(2 * (1 - r))); an error
+for \code{"t_independent"}.}
 
 \item{effect_basis}{Where the effect came from: "unknown" (default), "prior_study",
 "pilot", "smallest_of_interest", "convention" or "observed". "unknown" and
@@ -43,6 +50,7 @@ error, use \code{\link[=sensitivity]{sensitivity()}} instead. The chosen basis i
 A list of class \code{plansize_plan}.
 }
 \description{
-Computes the analytic per-group n for an independent two-sample t test,
-then applies the design effect and dropout correction with one final ceiling.
+Computes the analytic n for an independent two-sample t test or a paired
+(repeated-measures) t test, then applies the design effect and dropout
+correction with one final ceiling.
 }

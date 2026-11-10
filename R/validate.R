@@ -44,3 +44,17 @@ warn_basis <- function(basis) {
   }
   invisible(basis)
 }
+
+# Guards against hand-edited plans before sensitivity().
+check_plan <- function(x) {
+  ok_basis <- c("unknown", "prior_study", "pilot", "smallest_of_interest", "convention")
+  ok <- inherits(x, "plansize_plan") &&
+    is.character(x$test) && length(x$test) == 1L && x$test %in% names(test_spec) &&
+    is.character(x$effect_basis) && length(x$effect_basis) == 1L && x$effect_basis %in% ok_basis &&
+    is_num1(x$groups)
+  if (ok && test_spec[[x$test]]$design == "paired") {
+    ok <- is_num1(x$r) && x$r > -1 && x$r < 1 && is_num1(x$effect_test)
+  }
+  if (!ok) fail("err_plan", "plan")
+  invisible(x)
+}

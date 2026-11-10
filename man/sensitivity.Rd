@@ -9,7 +9,7 @@ sensitivity(plan, n = NULL, power = c(0.8, 0.9, 0.95))
 \arguments{
 \item{plan}{A \code{plansize_plan} from \code{\link[=plan_study]{plan_study()}}.}
 
-\item{n}{Recruited per-group sample sizes. Defaults to \code{plan$n_per_group}.}
+\item{n}{Recruited per-group sample sizes (participants for "t_paired"). Defaults to \code{plan$n_per_group}.}
 
 \item{power}{Target powers, each from 0.01 to 0.99 and greater than the plan's alpha.}
 }

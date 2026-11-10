@@ -4,7 +4,7 @@
 #' smallest standardized effect detectable after dropout and design effect.
 #'
 #' @param plan A `plansize_plan` from [plan_study()].
-#' @param n Recruited per-group sample sizes. Defaults to `plan$n_per_group`.
+#' @param n Recruited per-group sample sizes (participants for "t_paired"). Defaults to `plan$n_per_group`.
 #' @param power Target powers, each from 0.01 to 0.99 and greater than the plan's alpha.
 #' @details `n_effective` is `floor(n * (1 - dropout) / deff)`, rounded down, so the
 #'   minimum detectable effect for a plan with dropout can be slightly above the
@@ -14,7 +14,8 @@
 #' @export
 sensitivity <- function(plan, n = NULL, power = c(0.80, 0.90, 0.95)) {
   check_required(missing(plan), "plan")
-  if (!inherits(plan, "plansize_plan")) fail("err_plan", "plan")
+  check_plan(plan)
+  spec <- test_spec[[plan$test]]
   if (is.null(n)) n <- plan$n_per_group
   if (!is.numeric(n) || length(n) < 1L || any(!is.finite(n)) || any(n <= 0)) {
     fail("err_positive", "n")
@@ -24,10 +25,12 @@ sensitivity <- function(plan, n = NULL, power = c(0.80, 0.90, 0.95)) {
 
   g <- expand.grid(n_recruited = n, power = power)
   g$n_effective <- floor(g$n_recruited * (1 - plan$dropout) / plan$deff + 1e-9)
-  small <- which(g$n_effective < 3)
-  if (length(small)) fail("err_n_small", format(g$n_recruited[small[1]]))
+  small <- which(g$n_effective < spec$min_n)
+  if (length(small)) fail("err_n_small", format(g$n_recruited[small[1]]), spec$min_n)
   g$mde <- mapply(engine_mde, n = g$n_effective, power = g$power,
-    MoreArgs = list(alpha = plan$alpha, alternative = plan$alternative))
+    MoreArgs = list(alpha = plan$alpha, alternative = plan$alternative, design = spec$design))
+  # Paired engine returns dz; report d under the plan's r.
+  if (spec$design == "paired") g$mde <- g$mde * sqrt(2 * (1 - plan$r))
   g <- g[c("n_recruited", "n_effective", "power", "mde")]
-  structure(g, class = c("plansize_sensitivity", "data.frame"))
+  structure(g, class = c("plansize_sensitivity", "data.frame"), test = plan$test)
 }

@@ -24,3 +24,8 @@
 
 - **Ajan doğru yaptı:** `"observed"` hatasını motordan önce, uyarıyı başarılı hesaptan sonra koydu; uyarıyı sınıflı yaptı, böylece testler yalnız onu susturdu. Silinecek iki metnin tüm kullanımlarını bulup düzeltti.
 - **Ajan kaçırdı:** Kritik bir şey kaçırmadı. Genel inceleme yardım sayfasının yeni davranışı anlatmadığını ve uyarının dürüst seçenekleri söylemediğini buldu; ikisi düzeltildi. Elle değiştirilmiş plan nesnesindeki kötü hata mesajı ertelendi.
+
+## Dilim 4: bağımlı örneklemler t testi (2026-11-10)
+
+- **Ajan doğru yaptı:** Test tablosunu (`test_spec`) kurdu, d ve r'den dz hesabını doğru uyguladı; 42 bileşimde referanslarla ±1 içinde kaldı. Elle bozulmuş plan nesnesi sorununu da kapattı.
+- **Ajan kaçırdı:** Planın kendisi hangi d'nin girileceğini tanımlamıyordu; öğrenci dz'yi d sanarsa n yarıya inebilirdi. Genel inceleme buldu, belgeye ve metne tanım eklendi. Kaynak verilince çift parantez oluştuğunu örnek çıktıda kontrolcü fark etti; inceleme bunu kaynaksız örnekle çalıştığı için görmemişti. CSV yazarken ajan bir kez tırnaksız alan ve kontrol karakteri bıraktı, kendisi düzeltti.
