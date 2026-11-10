@@ -8,6 +8,8 @@ plan_study(
   test = "t_independent",
   effect,
   r = NULL,
+  k = NULL,
+  effect_type = c("f", "eta2"),
   effect_basis = c("unknown", "prior_study", "pilot", "smallest_of_interest",
     "convention", "observed"),
   effect_source = NULL,
@@ -19,15 +21,26 @@ plan_study(
 )
 }
 \arguments{
-\item{test}{\code{"t_independent"} (default) or \code{"t_paired"}.}
+\item{test}{\code{"t_independent"} (default), \code{"t_paired"} or \code{"anova_oneway"}.}
 
-\item{effect}{Standardized effect (Cohen's d), positive single number. For
+\item{effect}{Standardized effect, a positive single number: Cohen's d for the t tests; for
+"anova_oneway", Cohen's f or eta squared as set by effect_type. For
 \code{"t_paired"}, d is the mean change divided by the SD of one measurement (pre and
 post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.}
 
 \item{r}{Correlation between the two repeated measures, strictly between -1 and 1.
 Required for \code{"t_paired"} (d is converted to dz = d / sqrt(2 * (1 - r))); an error
 for \code{"t_independent"}.}
+
+\item{k}{Number of equal-sized groups, a single whole number of at least 2.
+Required for \code{"anova_oneway"}; an error for the t tests.}
+
+\item{effect_type}{\code{"f"} (default) or \code{"eta2"}: whether \code{effect} for
+\code{"anova_oneway"} is Cohen's f or eta squared (converted by f = sqrt(eta2 / (1 - eta2))).
+An error for the t tests. The F test has no direction, so \code{alternative}
+must not be set for \code{"anova_oneway"}.
+Use eta squared from a one-way design; partial eta squared from a design with other
+factors or covariates is not the same quantity.}
 
 \item{effect_basis}{Where the effect came from: "unknown" (default), "prior_study",
 "pilot", "smallest_of_interest", "convention" or "observed". "unknown" and
@@ -50,7 +63,8 @@ error, use \code{\link[=sensitivity]{sensitivity()}} instead. The chosen basis i
 A list of class \code{plansize_plan}.
 }
 \description{
-Computes the analytic n for an independent two-sample t test or a paired
-(repeated-measures) t test, then applies the design effect and dropout
+Computes the analytic n for an independent two-sample t test, a paired
+(repeated-measures) t test or the overall F test of a one-way ANOVA with k
+equal groups, then applies the design effect and dropout
 correction with one final ceiling.
 }

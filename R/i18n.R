@@ -22,11 +22,10 @@ msg <- function(key, ..., lang = NULL) {
   sprintf(x[[lang]][i], ...)
 }
 
-# Uses "<base>_<test>" when the CSV has it, else the shared base key.
+# `test` may be a vector of variants, tried in order; falls back to the shared base key.
 msg_for <- function(base, test, ..., lang = NULL) {
-  key <- if (is.null(test)) base else paste0(base, "_", test)
-  if (!key %in% read_messages()$key) key <- base
-  msg(key, ..., lang = lang)
+  keys <- c(if (!is.null(test)) paste0(base, "_", test), base)
+  msg(keys[keys %in% read_messages()$key][1], ..., lang = lang)
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a

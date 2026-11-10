@@ -27,34 +27,42 @@ write_methods <- function(plan, lang = NULL) {
   has_src <- !is.null(plan$effect_source) && nzchar(trimws(plan$effect_source))
   src <- if (has_src) paste0(" (", plan$effect_source, ")") else ""
   n_req <- as.integer(ceiling(plan$n_analytic))
-  paired <- test_spec[[plan$test]]$design == "paired"
+  design <- test_spec[[plan$test]]$design
+  paired <- design == "paired"
+  anova <- design == "anova"
+  # Text keys are tried as <base>_<variant>, then <base>.
+  variant <- if (anova && plan$effect_type == "eta2") c(paste0(plan$test, "_eta2"), plan$test) else plan$test
   # Total counts are quoted only when there is more than one group.
   tot <- function(n_group, n_all) if (plan$groups > 1L) c(n_group, n_all) else n_group
   eff <- c(list(fmt_num(plan$effect), src),
-           if (paired) list(fmt_prob(plan$r), fmt_num(round(plan$effect_test, 2))))
+           if (paired) list(fmt_prob(plan$r), fmt_num(round(plan$effect_test, 2))),
+           if (anova) list(plan$k),
+           if (anova && variant[1] != plan$test) list(fmt_num(round(plan$effect_test, 2))))
   parts <- c(
     msg("m_intro", msg(paste0("val_", plan$test), lang = lang),
         as.character(utils::packageVersion("plansize")), plan$engine_version, lang = lang),
-    do.call(msg_for, c(list("m_effect", plan$test), eff, list(lang = lang))),
+    do.call(msg_for, c(list("m_effect", variant), eff, list(lang = lang))),
     msg(paste0("m_basis_", plan$effect_basis), lang = lang),
-    do.call(msg_for, c(list("m_result", plan$test, msg(paste0("val_", plan$alternative), lang = lang),
-        fmt_prob(plan$alpha), fmt_prob(plan$power)),
-        as.list(tot(n_req, 2L * n_req)), list(lang = lang)))
+    do.call(msg_for, c(list("m_result", plan$test),
+        if (!anova) list(msg(paste0("val_", plan$alternative), lang = lang)),
+        list(fmt_prob(plan$alpha), fmt_prob(plan$power)),
+        as.list(tot(n_req, plan$groups * n_req)), list(lang = lang)))
   )
   drop <- fmt_plain(100 * plan$dropout)
   deff <- fmt_plain(plan$deff)
   has_d <- plan$dropout > 0
   has_f <- plan$deff > 1
   if (has_d && has_f) {
-    parts <- c(parts, do.call(msg_for, c(list("m_adjust_both", plan$test, drop, deff),
+    parts <- c(parts, do.call(msg_for, c(list("m_adjust_both", variant, drop, deff),
       as.list(tot(plan$n_per_group, plan$n_total)), list(lang = lang))))
   } else if (has_d) {
-    parts <- c(parts, do.call(msg_for, c(list("m_adjust_dropout", plan$test, drop),
+    parts <- c(parts, do.call(msg_for, c(list("m_adjust_dropout", variant, drop),
       as.list(tot(plan$n_per_group, plan$n_total)), list(lang = lang))))
   } else if (has_f) {
-    parts <- c(parts, do.call(msg_for, c(list("m_adjust_deff", plan$test, deff),
+    parts <- c(parts, do.call(msg_for, c(list("m_adjust_deff", variant, deff),
       as.list(tot(plan$n_per_group, plan$n_total)), list(lang = lang))))
   }
+  if (anova) parts <- c(parts, msg_for("m_posthoc", plan$test, lang = lang))
   structure(paste(parts, collapse = " "), class = c("plansize_methods", "character"))
 }
 

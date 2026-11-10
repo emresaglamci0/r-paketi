@@ -22,9 +22,9 @@ check_power <- function(x, alpha, name = "power") {
 }
 
 # Returns the matched choice; the untouched default (all choices) gives the first.
-check_choice <- function(x, choices, name) {
+check_choice <- function(x, choices, name, exact = FALSE) {
   if (identical(x, choices)) return(choices[1])
-  i <- if (is.character(x) && length(x) == 1L) pmatch(x, choices) else NA_integer_
+  i <- if (is.character(x) && length(x) == 1L) (if (exact) match else pmatch)(x, choices) else NA_integer_
   if (is.na(i)) {
     note <- if (name == "alternative") msg("hint_alternative") else ""
     fail("err_choice", name, paste(choices, collapse = ", "), note)
@@ -54,6 +54,15 @@ check_plan <- function(x) {
     is_num1(x$groups)
   if (ok && test_spec[[x$test]]$design == "paired") {
     ok <- is_num1(x$r) && x$r > -1 && x$r < 1 && is_num1(x$effect_test)
+  }
+  if (ok && test_spec[[x$test]]$design != "anova") {
+    ok <- is.character(x$alternative) && length(x$alternative) == 1L && x$alternative %in% c("two.sided", "one.sided")
+  }
+  if (ok && test_spec[[x$test]]$design == "anova") {
+    k <- x[["k"]]
+    ok <- is_num1(k) && k >= 2 && k == round(k) && k <= .Machine$integer.max && identical(as.numeric(x$groups), as.numeric(k)) &&
+      is.character(x$effect_type) && length(x$effect_type) == 1L &&
+      x$effect_type %in% c("f", "eta2") && is_num1(x$effect_test) && x$effect_test > 0
   }
   if (!ok) fail("err_plan", "plan")
   invisible(x)

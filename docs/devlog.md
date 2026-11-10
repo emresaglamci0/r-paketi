@@ -29,3 +29,8 @@
 
 - **Ajan doğru yaptı:** Test tablosunu (`test_spec`) kurdu, d ve r'den dz hesabını doğru uyguladı; 42 bileşimde referanslarla ±1 içinde kaldı. Elle bozulmuş plan nesnesi sorununu da kapattı.
 - **Ajan kaçırdı:** Planın kendisi hangi d'nin girileceğini tanımlamıyordu; öğrenci dz'yi d sanarsa n yarıya inebilirdi. Genel inceleme buldu, belgeye ve metne tanım eklendi. Kaynak verilince çift parantez oluştuğunu örnek çıktıda kontrolcü fark etti; inceleme bunu kaynaksız örnekle çalıştığı için görmemişti. CSV yazarken ajan bir kez tırnaksız alan ve kontrol karakteri bıraktı, kendisi düzeltti.
+
+## Dilim 5: tek yönlü ANOVA (2026-11-10)
+
+- **Ajan doğru yaptı:** `pwrss::power.f.ancova`'yı sardı, f ve η² yolunu doğru çevirdi; 168 bileşimde referanslarla ve simülasyonla uyuştu. t testi çıktıları birebir aynı kaldı.
+- **Ajan kaçırdı:** Çok büyük `k` ham hata veriyordu; "anova" yazınca kısmi eşleşme sessizce `anova_oneway`'i seçiyordu (test adları artık tam eşleşiyor). Planın post hoc cümlesi F testinin gösterdiğinden fazlasını iddia ediyordu ve yardım sayfası etkiyi yalnız d diye tanımlıyordu; ikisini genel inceleme buldu.
