@@ -28,7 +28,6 @@ val_prior_study,prior study,önceki çalışma
 val_pilot,pilot study,pilot çalışma
 val_smallest_of_interest,smallest effect of interest,ilgilenilen en küçük etki
 val_convention,convention,"yerleşik ölçüt (ör. Cohen eşikleri)"
-val_observed,observed in current data,mevcut veride gözlenen
 val_two.sided,two-sided,iki yönlü
 val_one.sided,one-sided,tek yönlü
 sens_title,Smallest detectable effect (Cohen's d),Saptanabilir en küçük etki (Cohen d)
@@ -51,8 +50,10 @@ m_basis_prior_study,This value was taken from a prior study.,Bu değer önceki b
 m_basis_pilot,This value was estimated from a pilot study.,Bu değer bir pilot çalışmanın verilerinden kestirilmiştir.
 m_basis_smallest_of_interest,This value is the smallest effect size of interest.,Bu değer ilgilenilen en küçük etki büyüklüğüdür.
 m_basis_convention,This value follows a conventional benchmark rather than study-specific evidence.,Bu değer çalışmaya özgü kanıt yerine yerleşik bir ölçüte dayanmaktadır.
-m_basis_observed,This value was observed in the current data.,Bu değer mevcut veride gözlenmiştir.
 m_result,"For a %s test with alpha = %s and power = %s, the required sample size was %s participants per group (%s in total).","Alfa = %2$s, güç = %3$s ve %1$s test için gerekli örneklem büyüklüğü grup başına %4$s, toplamda %5$s katılımcıdır."
 m_adjust_dropout,"Allowing for an expected dropout rate of %s%%, the recruitment target was %s participants per group (%s in total).","Beklenen kayıp oranı %%%s varsayıldığında hedeflenen katılımcı sayısı grup başına %s, toplamda %s olarak belirlenmiştir."
 m_adjust_deff,"Allowing for a design effect of %s, the recruitment target was %s participants per group (%s in total).","Tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı grup başına %s, toplamda %s olarak belirlenmiştir."
 m_adjust_both,"Allowing for an expected dropout rate of %s%% and a design effect of %s, the recruitment target was %s participants per group (%s in total).","Beklenen kayıp oranı %%%s ve tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı grup başına %s, toplamda %s olarak belirlenmiştir."
+err_observed,"effect_basis = ""observed"" is not allowed: an effect observed in the current data cannot justify the sample size of the same data. Use sensitivity() to report the smallest effect your sample can detect.","effect_basis = ""observed"" kullanılamaz: mevcut veride gözlenen etki aynı verinin örneklem büyüklüğünü gerekçelendiremez. Örneklemin saptayabileceği en küçük etkiyi raporlamak için sensitivity() kullanın."
+warn_unknown,"The basis of the effect size is unknown. Set effect_basis to ""prior_study"", ""pilot"" or ""smallest_of_interest""; otherwise the methods text will state that the rationale was not specified.","Etki büyüklüğünün dayanağı bilinmiyor. effect_basis değerini ""prior_study"", ""pilot"" ya da ""smallest_of_interest"" olarak belirtin; aksi hâlde yöntem metninde bu etki büyüklüğünün seçilme gerekçesinin belirtilmediği yazılacaktır."
+warn_convention,"The effect size rests on a conventional benchmark rather than study-specific evidence. Prefer a prior study, a pilot study or the smallest effect of interest.","Etki büyüklüğü çalışmaya özgü kanıt yerine yerleşik bir ölçüte dayanıyor. Önceki bir çalışmayı, pilot çalışmayı ya da ilgilenilen en küçük etkiyi tercih edin."

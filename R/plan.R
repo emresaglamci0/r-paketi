@@ -5,7 +5,10 @@
 #'
 #' @param test Test name. Only `"t_independent"` is supported.
 #' @param effect Standardized effect (Cohen's d), positive single number.
-#' @param effect_basis Where the effect came from.
+#' @param effect_basis Where the effect came from: "unknown" (default), "prior_study",
+#'   "pilot", "smallest_of_interest", "convention" or "observed". "unknown" and
+#'   "convention" give a warning of class `plansize_basis_warning`; "observed" is an
+#'   error, use [sensitivity()] instead. The chosen basis is stated in the methods text.
 #' @param effect_source Optional free-text source of the effect.
 #' @param alpha Significance level, in (0, 1).
 #' @param power Target power, from 0.01 to 0.99 and greater than alpha.
@@ -24,6 +27,7 @@ plan_study <- function(test = "t_independent", effect,
   if (!identical(test, "t_independent")) fail("err_test", format(test))
   check_positive_number(effect, "effect")
   effect_basis <- check_choice(effect_basis, eval(formals()$effect_basis), "effect_basis")
+  if (effect_basis == "observed") fail("err_observed")
   alternative <- check_choice(alternative, eval(formals()$alternative), "alternative")
   if (!is.null(effect_source) && !(is.character(effect_source) &&
       length(effect_source) == 1L && !is.na(effect_source))) {
@@ -38,6 +42,7 @@ plan_study <- function(test = "t_independent", effect,
   n_raw <- ceiling(e$n * deff / (1 - dropout))
   if (2 * n_raw > .Machine$integer.max) fail("err_overflow")
   n_group <- as.integer(n_raw)
+  warn_basis(effect_basis)
   structure(list(
     test = test, effect = effect, effect_basis = effect_basis,
     effect_source = effect_source, alpha = alpha, power = power,

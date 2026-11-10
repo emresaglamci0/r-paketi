@@ -22,7 +22,10 @@ plan_study(
 
 \item{effect}{Standardized effect (Cohen's d), positive single number.}
 
-\item{effect_basis}{Where the effect came from.}
+\item{effect_basis}{Where the effect came from: "unknown" (default), "prior_study",
+"pilot", "smallest_of_interest", "convention" or "observed". "unknown" and
+"convention" give a warning of class \code{plansize_basis_warning}; "observed" is an
+error, use \code{\link[=sensitivity]{sensitivity()}} instead. The chosen basis is stated in the methods text.}
 
 \item{effect_source}{Optional free-text source of the effect.}
 

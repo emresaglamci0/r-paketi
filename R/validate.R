@@ -35,3 +35,12 @@ check_choice <- function(x, choices, name) {
 check_required <- function(missing_arg, name) {
   if (missing_arg) fail("err_missing", name)
 }
+
+# Classed so tests and callers can silence this guardrail alone.
+warn_basis <- function(basis) {
+  if (basis %in% c("unknown", "convention")) {
+    warning(structure(class = c("plansize_basis_warning", "warning", "condition"),
+      list(message = msg(paste0("warn_", basis)), call = NULL)))
+  }
+  invisible(basis)
+}

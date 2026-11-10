@@ -19,3 +19,8 @@
 
 - **Ajan doğru yaptı:** Metni CSV'den kurdu, sayıları ek hesap yapmadan biçimlendirdi, kullanıcı metnini biçim dizgesine sokmadı.
 - **Ajan kaçırdı:** Planın kendi metni iki yanlış ifade içeriyordu: ilgilenilen en küçük etkiye "beklenen" diyordu, kaynak verilmişken "dayanağı belirtilmemiştir" yazıyordu. Testler bunları yakalayamadı, çünkü beklenen metin de plandan geliyordu; genel inceleme buldu. Son turda iki test koddan sonra yazıldı, bilerek bozma denemesi testlerin çalıştığını gösterdi.
+
+## Dilim 3: dayanak korkulukları (2026-11-10)
+
+- **Ajan doğru yaptı:** `"observed"` hatasını motordan önce, uyarıyı başarılı hesaptan sonra koydu; uyarıyı sınıflı yaptı, böylece testler yalnız onu susturdu. Silinecek iki metnin tüm kullanımlarını bulup düzeltti.
+- **Ajan kaçırdı:** Kritik bir şey kaçırmadı. Genel inceleme yardım sayfasının yeni davranışı anlatmadığını ve uyarının dürüst seçenekleri söylemediğini buldu; ikisi düzeltildi. Elle değiştirilmiş plan nesnesindeki kötü hata mesajı ertelendi.
