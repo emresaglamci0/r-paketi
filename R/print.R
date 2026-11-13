@@ -17,7 +17,7 @@ print.plansize_plan <- function(x, ...) {
   if (!is.null(x$effect_source)) cat(msg("plan_source", x$effect_source), "\n")
   cat(msg("plan_alpha", format(x$alpha)), "\n")
   cat(msg("plan_power", format(x$power)), "\n")
-  if (spec$directional) cat(msg("plan_alt", msg(paste0("val_", x$alternative))), "\n")
+  if (spec$directional) cat(msg_for("plan_alt", spec$variant(x), msg(paste0("val_", x$alternative))), "\n")
   cat(msg("plan_dropout", format(100 * x$dropout)), "\n")
   cat(msg("plan_deff", format(x$deff)), "\n")
   cat(msg("plan_method", x$method, x$engine_version), "\n")

@@ -11,7 +11,7 @@ test_that("plans, prints and methods text match the golden file", {
 })
 test_that("error messages match the golden file", {
   gold <- readRDS(test_path("fixtures", "golden.rds"))
-  # The invalid-test message lists the valid tests, so it gained prop_two in slice 6.
-  now <- lapply(golden_errors(), sub, pattern = ", prop_two", replacement = "", fixed = TRUE)
-  expect_identical(now, gold$errors)
+  # The list of valid tests is replaced by a placeholder, so new tests do not break this.
+  now <- lapply(golden_errors(), golden_strip_tests)
+  expect_identical(now, lapply(gold$errors, golden_strip_tests))
 })

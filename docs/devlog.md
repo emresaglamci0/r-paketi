@@ -39,3 +39,8 @@
 
 - **Ajan doğru yaptı:** Teste özgü dalları `test_spec` fonksiyonlarına taşıdı; altın dosya `main`'den bağımsız yeniden üretilip birebir aynı çıktı. İki oranı yeni dal açmadan ekledi; n `stats` ile 709 durumda uyuştu. Oturum kesilince kaldığı yerden devam etti.
 - **Ajan kaçırdı:** `pwrss`'in duyarlılık araması düz bölgeye takılıp 0.9998 döndürüyordu; plandaki "0.999 üstü hata" kuralı bunu gizledi ve bir test hatalı davranışı sabitledi. Genel inceleme yakaladı, `pwrss` gücü üzerinde kök arama ile çözüldü. Ham İngilizce hatalar, iç içe parantez ve "süreklilik düzeltmesi yok" eksikliği de incelemede çıktı. "En fazla 1 kişi" iddiası (benim planımdaki) ölçümle yanlış çıktı.
+
+## Dilim 7: Pearson korelasyonu (2026-11-13)
+
+- **Ajan doğru yaptı:** Korelasyonu yalnız `test_spec` ve motor dosyasına ekledi; Fisher z formülüyle birebir uyuştu. `pwr` ile karşılaştırma ±1'i aşınca toleransı genişletmek yerine durdu ve sordu. `pwrss`'in negatif yönde bozuk duyarlılık aramasını plan kontrol ajanı önceden buldu.
+- **Ajan kaçırdı:** Planın kendisi `pwr`'ı aynı yöntem sanmıştı (o bir düzeltme ekliyor). Genel inceleme iki kullanıcı sorunu buldu: `r = 0.3` yazan öğrenci yardımcı mesajı göremiyordu, tek yönlü testte yön metne yazılmıyordu. Düzenleme aracı testteki `\u` kaçışlarını iki kez gerçek harfe çevirdi; ajan fark edip düzeltti.

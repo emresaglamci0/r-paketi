@@ -112,7 +112,9 @@ test_that("no sprintf warnings across tests and variants", {
     list(effect = 0.5), list(test = "t_paired", effect = 0.5, r = 0.5),
     list(test = "anova_oneway", effect = 0.25, k = 3),
     list(test = "anova_oneway", effect = 0.06, k = 3, effect_type = "eta2"),
-    list(test = "prop_two", p1 = 0.45, p2 = 0.30))
+    list(test = "prop_two", p1 = 0.45, p2 = 0.30),
+    list(test = "cor_pearson", effect = 0.3),
+    list(test = "cor_pearson", effect = -0.3, alternative = "one.sided"))
   for (a in plans) for (dr in c(0, 0.1)) for (de in c(1, 1.5)) for (lg in c("en", "tr")) {
     p <- do.call(plan_study, c(a, list(effect_basis = "pilot", dropout = dr, deff = de)))
     withr::with_options(list(plansize.lang = lg), {

@@ -37,7 +37,7 @@ write_methods <- function(plan, lang = NULL) {
         as.character(utils::packageVersion("plansize")), plan$engine_version, lang = lang),
     spec$effect_sentence(plan, src, lang),
     msg(paste0("m_basis_", plan$effect_basis), lang = lang),
-    do.call(msg_for, c(list("m_result", plan$test),
+    do.call(msg_for, c(list("m_result", variant),
         if (spec$directional) list(msg(paste0("val_", plan$alternative), lang = lang)),
         list(fmt_prob(plan$alpha), fmt_prob(plan$power)),
         as.list(tot(n_req, plan$groups * n_req)), list(lang = lang)))

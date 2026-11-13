@@ -23,16 +23,18 @@ plan_study(
 )
 }
 \arguments{
-\item{test}{\code{"t_independent"} (default), \code{"t_paired"}, \code{"anova_oneway"} or \code{"prop_two"}.}
+\item{test}{\code{"t_independent"} (default), \code{"t_paired"}, \code{"anova_oneway"}, \code{"prop_two"} or \code{"cor_pearson"}.}
 
-\item{effect}{Standardized effect, a positive single number (not used with \code{"prop_two"}): Cohen's d for the t tests; for
+\item{effect}{Effect size, a single number: positive for the t tests and ANOVA; not used with \code{"prop_two"};
+for \code{"cor_pearson"} the expected Pearson r, between -1 and 1 and not 0 (its sign sets the
+direction of a one-sided test). Cohen's d for the t tests; for
 "anova_oneway", Cohen's f or eta squared as set by effect_type. For
 \code{"t_paired"}, d is the mean change divided by the SD of one measurement (pre and
 post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.}
 
-\item{r}{Correlation between the two repeated measures, strictly between -1 and 1.
-Required for \code{"t_paired"} (d is converted to dz = d / sqrt(2 * (1 - r))); an error
-for \code{"t_independent"}.}
+\item{r}{Only for \code{"t_paired"}: the correlation between the two repeated measurements,
+strictly between -1 and 1 (d is converted to dz = d / sqrt(2 * (1 - r))). An error
+for the other tests. For \code{"cor_pearson"}, give the expected correlation as \code{effect}, not as \code{r}.}
 
 \item{k}{Number of equal-sized groups, a single whole number of at least 2.
 Required for \code{"anova_oneway"}; an error for the t tests.}
@@ -71,10 +73,12 @@ A list of class \code{plansize_plan}.
 \description{
 Computes the analytic n for an independent two-sample t test, a paired
 (repeated-measures) t test, the overall F test of a one-way ANOVA with k
-equal groups or a comparison of two independent proportions (pooled-SE z test),
+equal groups, a comparison of two independent proportions (pooled-SE z test) or a Pearson correlation (Fisher z test of H0: rho = 0),
 then applies the design effect and dropout
 correction with one final ceiling.
 }
 \details{
 For "prop_two", pwrss returns an already rounded n, so the dropout and design effect correction is applied to that rounded n; the recruitment target can be a few participants higher than a single final rounding would give.
+
+For "cor_pearson", n uses the Fisher z approximation without the bias correction of pwr::pwr.r.test (about 1 participant higher), so results can differ slightly from pwr or G*Power; the approximation is rough below about 10 participants but errs on the safe side.
 }

@@ -9,7 +9,7 @@ sensitivity(plan, n = NULL, power = c(0.8, 0.9, 0.95))
 \arguments{
 \item{plan}{A \code{plansize_plan} from \code{\link[=plan_study]{plan_study()}}.}
 
-\item{n}{Recruited per-group sample sizes (participants for "t_paired"). Defaults to \code{plan$n_per_group}.}
+\item{n}{Recruited per-group sample sizes (participants for "t_paired" and "cor_pearson"). Defaults to \code{plan$n_per_group}.}
 
 \item{power}{Target powers, each from 0.01 to 0.99 and greater than the plan's alpha.}
 }
@@ -18,6 +18,7 @@ A data frame of class \code{plansize_sensitivity} with columns
 \code{n_recruited}, \code{n_effective}, \code{power}, \code{mde}. For "anova_oneway" \code{mde} is in the
 plan's \code{effect_type} (f or eta squared); the unit is kept in \code{attr(, "effect_type")}.
 For "prop_two" \code{mde} is the detectable p1 with p2 fixed, in the direction of the planned difference.
+For "cor_pearson" mde is the detectable r with the sign of the planned correlation.
 }
 \description{
 For each combination of recruited per-group n and power, returns the

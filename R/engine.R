@@ -57,3 +57,18 @@ engine_mde_props <- function(n, p2, increase, alpha, power, alternative) {
   lim <- if (increase) c(p2 + 1e-4, 0.9999) else c(1e-4, p2 - 1e-4)
   tryCatch(stats::uniroot(pw, lim, tol = 1e-8)$root, error = function(e) fail("err_infeasible"))
 }
+
+# Pearson correlation, Fisher z test of H0: rho = 0. Always runs on abs(rho) with req.sign "+":
+# pwrss 1.3.3 returns the same n for either sign, and its req.sign = "-" search is broken.
+engine_n_cor <- function(rho, alpha, power, alternative) {
+  r <- guard_pwrss(pwrss::power.z.onecor(rho = abs(rho), req.sign = "+", power = power, alpha = alpha,
+    alternative = alternative, ceil.n = FALSE, verbose = 0))
+  r$n
+}
+
+# Smallest detectable correlation for n; the result carries `sign` (the planned direction).
+engine_mde_cor <- function(n, sign, alpha, power, alternative) {
+  r <- guard_pwrss(pwrss::power.z.onecor(rho = NULL, req.sign = "+", n = n, power = power,
+    alpha = alpha, alternative = alternative, ceil.n = FALSE, verbose = 0))
+  sign * r$rho
+}

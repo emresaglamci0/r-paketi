@@ -175,5 +175,39 @@ test_spec <- list(
       is_prob1(plan[["p1"]]) && is_prob1(plan[["p2"]]) && plan$p1 != plan$p2 &&
         isTRUE(all.equal(plan$effect_test, plan$p1 - plan$p2)) && identical(as.numeric(plan$groups), 2)
     }
+  ),
+  cor_pearson = list(
+    directional = TRUE, min_n = 4, method = "fisher_z_cor",
+    groups = function(a) 1L,
+    prepare = function(a, given) {
+      if (!is.null(a[["r"]])) fail("err_r_cor")
+      check_required(!"effect" %in% given, "effect")
+      effect <- a[["effect"]]
+      if (!is_num1(effect) || abs(effect) >= 1 || effect == 0) fail("err_cor_effect")
+      reject_anova_args(a, given)
+      reject_p_args(a)
+      list(effect = effect, effect_test = effect,
+           extra = list(effect_type = NA_character_, k = NA_integer_, r = NULL))
+    },
+    n = function(p) engine_n_cor(p$effect_test, p$alpha, p$power, p$alternative),
+    # Detectable r keeps the sign of the planned correlation.
+    mde = function(n, plan, power) {
+      engine_mde_cor(n, sign(plan$effect), plan$alpha, power, plan$alternative)
+    },
+    effect_lines = function(plan) msg_for("plan_effect", plan$test, format(plan$effect)),
+    effect_sentence = function(plan, src, lang) {
+      msg_for("m_effect", plan$test, fmt_prob(plan$effect), src, lang = lang)
+    },
+    # One-sided text states H1; the sensitivity table passes no alternative or effect.
+    variant = function(plan) {
+      if (identical(plan$alternative, "one.sided") && is_num1(plan$effect)) {
+        c(paste0(plan$test, if (plan$effect > 0) "_pos" else "_neg"), plan$test)
+      } else plan$test
+    },
+    check = function(plan) {
+      is_num1(plan$effect_test) && abs(plan$effect_test) < 1 && plan$effect_test != 0 &&
+        identical(plan$effect, plan$effect_test) && identical(as.numeric(plan$groups), 1) &&
+        is.null(plan[["r"]]) && isTRUE(is.na(plan[["k"]])) && isTRUE(is.na(plan[["effect_type"]]))
+    }
   )
 )
