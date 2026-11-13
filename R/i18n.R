@@ -29,3 +29,11 @@ msg_for <- function(base, test, ..., lang = NULL) {
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
+
+# Today only variant keys exist for plan_note and m_posthoc (no base key).
+# Like msg_for(), but NULL when neither the variant key nor the base key exists.
+msg_for_opt <- function(base, test, ..., lang = NULL) {
+  keys <- c(paste0(base, "_", test), base)
+  if (!any(keys %in% read_messages()$key)) return(NULL)
+  msg_for(base, test, ..., lang = lang)
+}

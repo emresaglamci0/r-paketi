@@ -9,6 +9,8 @@ plan_study(
   effect,
   r = NULL,
   k = NULL,
+  p1 = NULL,
+  p2 = NULL,
   effect_type = c("f", "eta2"),
   effect_basis = c("unknown", "prior_study", "pilot", "smallest_of_interest",
     "convention", "observed"),
@@ -21,9 +23,9 @@ plan_study(
 )
 }
 \arguments{
-\item{test}{\code{"t_independent"} (default), \code{"t_paired"} or \code{"anova_oneway"}.}
+\item{test}{\code{"t_independent"} (default), \code{"t_paired"}, \code{"anova_oneway"} or \code{"prop_two"}.}
 
-\item{effect}{Standardized effect, a positive single number: Cohen's d for the t tests; for
+\item{effect}{Standardized effect, a positive single number (not used with \code{"prop_two"}): Cohen's d for the t tests; for
 "anova_oneway", Cohen's f or eta squared as set by effect_type. For
 \code{"t_paired"}, d is the mean change divided by the SD of one measurement (pre and
 post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.}
@@ -34,6 +36,10 @@ for \code{"t_independent"}.}
 
 \item{k}{Number of equal-sized groups, a single whole number of at least 2.
 Required for \code{"anova_oneway"}; an error for the t tests.}
+
+\item{p1, p2}{Expected proportions in group 1 and group 2, each strictly between 0 and 1 and
+different. Required for \code{"prop_two"} (pooled-SE z test; the effect is the difference
+p1 - p2, so \code{effect} must not be given); an error for the other tests.}
 
 \item{effect_type}{\code{"f"} (default) or \code{"eta2"}: whether \code{effect} for
 \code{"anova_oneway"} is Cohen's f or eta squared (converted by f = sqrt(eta2 / (1 - eta2))).
@@ -64,7 +70,11 @@ A list of class \code{plansize_plan}.
 }
 \description{
 Computes the analytic n for an independent two-sample t test, a paired
-(repeated-measures) t test or the overall F test of a one-way ANOVA with k
-equal groups, then applies the design effect and dropout
+(repeated-measures) t test, the overall F test of a one-way ANOVA with k
+equal groups or a comparison of two independent proportions (pooled-SE z test),
+then applies the design effect and dropout
 correction with one final ceiling.
+}
+\details{
+For "prop_two", pwrss returns an already rounded n, so the dropout and design effect correction is applied to that rounded n; the recruitment target can be a few participants higher than a single final rounding would give.
 }

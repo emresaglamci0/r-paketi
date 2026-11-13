@@ -4,6 +4,9 @@ fail <- function(key, ...) stop(msg(key, ...), call. = FALSE)
 
 is_num1 <- function(x) is.numeric(x) && length(x) == 1L && is.finite(x)
 
+# A single proportion strictly between 0 and 1.
+is_prob1 <- function(x) is_num1(x) && x > 0 && x < 1
+
 check_positive_number <- function(x, name) {
   if (!is_num1(x) || x <= 0) fail("err_positive", name)
   invisible(x)
@@ -52,18 +55,11 @@ check_plan <- function(x) {
     is.character(x$test) && length(x$test) == 1L && x$test %in% names(test_spec) &&
     is.character(x$effect_basis) && length(x$effect_basis) == 1L && x$effect_basis %in% ok_basis &&
     is_num1(x$groups)
-  if (ok && test_spec[[x$test]]$design == "paired") {
-    ok <- is_num1(x$r) && x$r > -1 && x$r < 1 && is_num1(x$effect_test)
-  }
-  if (ok && test_spec[[x$test]]$design != "anova") {
+  spec <- if (ok) test_spec[[x$test]]
+  if (ok && spec$directional) {
     ok <- is.character(x$alternative) && length(x$alternative) == 1L && x$alternative %in% c("two.sided", "one.sided")
   }
-  if (ok && test_spec[[x$test]]$design == "anova") {
-    k <- x[["k"]]
-    ok <- is_num1(k) && k >= 2 && k == round(k) && k <= .Machine$integer.max && identical(as.numeric(x$groups), as.numeric(k)) &&
-      is.character(x$effect_type) && length(x$effect_type) == 1L &&
-      x$effect_type %in% c("f", "eta2") && is_num1(x$effect_test) && x$effect_test > 0
-  }
+  if (ok) ok <- spec$check(x)
   if (!ok) fail("err_plan", "plan")
   invisible(x)
 }

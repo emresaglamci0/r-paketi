@@ -17,6 +17,7 @@ sensitivity(plan, n = NULL, power = c(0.8, 0.9, 0.95))
 A data frame of class \code{plansize_sensitivity} with columns
 \code{n_recruited}, \code{n_effective}, \code{power}, \code{mde}. For "anova_oneway" \code{mde} is in the
 plan's \code{effect_type} (f or eta squared); the unit is kept in \code{attr(, "effect_type")}.
+For "prop_two" \code{mde} is the detectable p1 with p2 fixed, in the direction of the planned difference.
 }
 \description{
 For each combination of recruited per-group n and power, returns the

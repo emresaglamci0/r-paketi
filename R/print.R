@@ -11,25 +11,18 @@ print.plansize_plan <- function(x, ...) {
   if (x$groups > 1L) cat(msg("plan_n_total", x$n_total), "\n")
   cat("\n")
   cat(msg("plan_test", msg(paste0("val_", x$test))), "\n")
-  anova <- test_spec[[x$test]]$design == "anova"
-  eta2 <- anova && x$effect_type == "eta2"
-  if (anova) cat(msg("plan_k", x$k), "\n")
-  cat(msg_for("plan_effect", if (eta2) c(paste0(x$test, "_eta2"), x$test) else x$test,
-              if (anova) fmt_num(x$effect) else format(x$effect)), "\n")
-  if (eta2) cat(msg("plan_f", fmt_num(round(x$effect_test, 2))), "\n")
-  if (test_spec[[x$test]]$design == "paired") {
-    cat(msg("plan_r", format(x$r)), "\n")
-    cat(msg("plan_dz", fmt_num(round(x$effect_test, 2))), "\n")
-  }
+  spec <- test_spec[[x$test]]
+  for (line in spec$effect_lines(x)) cat(line, "\n")
   cat(msg("plan_basis", msg(paste0("val_", x$effect_basis))), "\n")
   if (!is.null(x$effect_source)) cat(msg("plan_source", x$effect_source), "\n")
   cat(msg("plan_alpha", format(x$alpha)), "\n")
   cat(msg("plan_power", format(x$power)), "\n")
-  if (!anova) cat(msg("plan_alt", msg(paste0("val_", x$alternative))), "\n")
+  if (spec$directional) cat(msg("plan_alt", msg(paste0("val_", x$alternative))), "\n")
   cat(msg("plan_dropout", format(100 * x$dropout)), "\n")
   cat(msg("plan_deff", format(x$deff)), "\n")
   cat(msg("plan_method", x$method, x$engine_version), "\n")
-  if (anova) cat("\n", msg_for("plan_note", x$test), "\n", sep = "")
+  note <- msg_for_opt("plan_note", x$test)
+  if (!is.null(note)) cat("\n", note, "\n", sep = "")
   invisible(x)
 }
 
@@ -41,7 +34,10 @@ print.plansize_plan <- function(x, ...) {
 #' @export
 print.plansize_sensitivity <- function(x, ...) {
   test <- attr(x, "test")
-  if (identical(attr(x, "effect_type"), "eta2")) test <- c(paste0(test, "_eta2"), test)
+  # variant() reads only test and effect_type, which the table keeps as attributes.
+  if (!is.null(test)) {
+    test <- test_spec[[test]]$variant(list(test = test, effect_type = attr(x, "effect_type")))
+  }
   d <- as.data.frame(unclass(x))
   if ("mde" %in% names(d)) d$mde <- round(d$mde, 3)
   known <- names(d) %in% c("n_recruited", "n_effective", "power", "mde")

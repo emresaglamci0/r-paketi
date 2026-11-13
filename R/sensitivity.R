@@ -12,6 +12,7 @@
 #' @return A data frame of class `plansize_sensitivity` with columns
 #'   `n_recruited`, `n_effective`, `power`, `mde`. For "anova_oneway" `mde` is in the
 #'   plan's `effect_type` (f or eta squared); the unit is kept in `attr(, "effect_type")`.
+#'   For "prop_two" `mde` is the detectable p1 with p2 fixed, in the direction of the planned difference.
 #' @export
 sensitivity <- function(plan, n = NULL, power = c(0.80, 0.90, 0.95)) {
   check_required(missing(plan), "plan")
@@ -28,13 +29,7 @@ sensitivity <- function(plan, n = NULL, power = c(0.80, 0.90, 0.95)) {
   g$n_effective <- floor(g$n_recruited * (1 - plan$dropout) / plan$deff + 1e-9)
   small <- which(g$n_effective < spec$min_n)
   if (length(small)) fail("err_n_small", format(g$n_recruited[small[1]]), spec$min_n)
-  g$mde <- mapply(engine_mde, n = g$n_effective, power = g$power,
-    MoreArgs = list(alpha = plan$alpha, alternative = plan$alternative, design = spec$design,
-      k = plan[["k"]]))
-  # Paired engine returns dz; report d under the plan's r.
-  if (spec$design == "paired") g$mde <- g$mde * sqrt(2 * (1 - plan$r))
-  # ANOVA engine returns f; report in the unit the user entered.
-  if (spec$design == "anova" && plan$effect_type == "eta2") g$mde <- g$mde^2 / (1 + g$mde^2)
+  g$mde <- mapply(function(n, pw) spec$mde(n, plan, pw), g$n_effective, g$power)
   g <- g[c("n_recruited", "n_effective", "power", "mde")]
   structure(g, class = c("plansize_sensitivity", "data.frame"), test = plan$test,
     effect_type = plan$effect_type)
