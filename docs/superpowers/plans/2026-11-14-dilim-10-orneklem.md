@@ -1,171 +1,93 @@
-# Dilim 10: örnekleme modülü (Cochran, sonlu evren düzeltmesi, kayıp, DEFF) Implementation Plan
+# Dilim 10: örnekleme modülü (Cochran kesinliği, sonlu evren, kayıp, DEFF) - plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+Dal: `slice-10-precision`. Onaydan önce kod yok. Commit yalnız kullanıcı isteyince. Sıra: testler, kod, bağımsız inceleme, `devtools::test()` + `dev\check.ps1`, Türkçe anlatım, 2-3 deneme + bilerek hatalı girdi, anlama sorusu, `main`, devlog.
 
-**Önkoşul:** Dilim 1-8 `main`'de (Dilim 9/9b'ye bağlı değil). `dropout` ve `deff` zaten `plan_study()` içinde (Dilim 1'den beri); bu dilim aynı düzeltme sırasını **kesinlik** hesabına getirir ve kaynakla doğrular.
+## Amaç
 
-**Goal:** `plan_precision(p, e, conf_level, N, dropout, deff)` tek bir oranı verilen kesinlikle (güven aralığı yarı genişliği) kestirmek için gerekli örneklemi verir: Cochran n0, varsa sonlu evren düzeltmesi, `× deff`, `/ (1 - dropout)`, tek yukarı yuvarlama. Kendi yöntem paragrafını `write_methods()` ile üretir (kullanıcı kararı, 2026-11-14). Kesinlik planı `sensitivity()`'e ya da bir hipotez testi işlevine verilirse okunur hata verir (spec §7 korkuluk tablosu, 3. satır; `write_methods()` bu hatadan muaftır).
+`plan_precision(p, e, conf_level, N, dropout, deff)` tek bir oranı güven aralığı yarı genişliği `e` ile kestirmek için gereken örneklemi verir. Sıra (spec §7): n0 (Cochran), varsa sonlu evren düzeltmesi, `x deff`, `/ (1 - dropout)`, tek `ceiling()`. `write_methods()` kesinlik planı için kendi paragrafını yazar (kullanıcı kararı, 2026-11-14; ayrı `write_methods_precision` yok). `sensitivity()` kesinlik planını okunur hatayla reddeder (spec §7 korkuluk satırı, zaten bu karara göre güncel). Güç motoru yazılmaz; `pwrss` bu hesabı yapmaz, kapalı formül `stats::qnorm` ile kurulur. `plan_study()` zaten kayıp ve DEFF uyguluyor (R/plan.R:121); bu dilim yalnız kesinlik tarafını ekler.
 
-**Architecture:** Yeni dosya `R/precision.R`: `plan_precision()`, `print.plansize_precision()`, `write_methods` içindeki sınıf dalı (karar 2, aşağıda). Korkuluk `check_plan()` içinde tek yerde: sınıf `plansize_precision` ise `err_precision_plan`. Cochran formülü kapalı biçimli bir kuramsal formüldür (`pwrss` bu hesabı yapmaz); `stats::qnorm` kullanılır, güç motoru yazılmaz. Doğruluk bağımsız kaynakla (aşağıda) kanıtlanır.
+## Dokunulan dosyalar (güncel koda göre)
 
-**Tech Stack:** R 4.6.1, testthat 3. Referans: Cochran (1977) formülü, CRAN `cochranSize` paketinin yayımlanmış örnekleri (kurulu değil, değerler vinyetinden), spec §7 örneği.
+- Yeni: `R/precision.R`, `tests/testthat/test-precision.R`.
+- `R/validate.R`: `check_plan` (satır 52) en başına yeni kol: `inherits(x, "plansize_precision")` ise `fail("err_precision_plan")`, mevcut `inherits(x, "plansize_plan")` denetiminden ÖNCE. Sınıfı elle bozulmuş (ne plansize_precision ne plansize_plan) nesne eskisi gibi `err_plan` alır. `check_adjust(dropout, deff)` yeni yardımcı (R/plan.R:115-116'daki iki satır şimdilik satır içi; `fail("err_dropout", "dropout")` kalıbı) ve `round_up(x) = ceiling(x - 1e-9)` (kayan nokta payı, R/sensitivity.R:32'deki `+ 1e-9` ile aynı amaç: 400 * 1.1 = 440.00000000000006 yanlışlıkla 441 olmasın).
+- `R/plan.R`: yalnız o iki satırı `check_adjust()` çağrısına çevir (davranış ve mesajlar aynı; altın dosya değişmez).
+- `R/methods.R`: `write_methods` (satır 23-25) içinde `check_plan(plan)` (satır 25) çağrısından ÖNCE 3 satır: `if (inherits(plan, "plansize_precision")) return(methods_precision(plan, lang))`. `@param plan` açıklaması kesinlik planını da anar (yardım sayfası karışıklığı dersi: Dilim 3, 9, 9b).
+- `R/sensitivity.R`: yalnız roxygen `@param plan` cümlesi (kesinlik planı hata verir). Kod değişmez: satır 22'deki `check_plan(plan)` yeni koldan `err_precision_plan` verir.
+- `tests/testthat/helper-plan.R`: `paren_depth` buraya taşınır (şimdi `test-source-parens.R` içinde, dosyalar arası paylaşılmaz).
+- `inst/i18n/messages.csv`, `NAMESPACE` ve `man/` (`devtools::document()`).
+- Dokunulmaz: `R/tests.R` (`test_spec` tablosuna girmez; kesinlik hipotez testi değil), `R/print.R` (print yöntemi `precision.R`'de), altın dosya ve `helper-golden.R`.
 
-**Spec:** `docs/superpowers/specs/2026-11-09-orneklem-planlama-paketi-design.md` (§6 Cochran sabit kıyası, §7 düzeltme sırası ve korkuluk, §8 madde 10)
+## Arayüzler
 
-## Global Constraints
-
-- Rscript yolu: `D:\R-4.6.1\bin\Rscript.exe`. `TEMP`, `TMP`, `TMPDIR` = `D:\rtmp`.
-- R kodu ve testler ASCII. Kullanıcı metinleri `msg()` ile, `en` ve `tr` birlikte. CSV UTF-8, BOM yok, virgüllü alan tırnaklı. Her anahtara tam kullandığı kadar argüman geçer.
-- Düzeltme sırası: analitik n (varsa sonlu evren), `× deff`, `/ (1 - dropout)`, tek `ceiling()`. Ara yuvarlama yok (cochranSize `n0`'ı önce yuvarlıyor; bu pakette yuvarlanmaz, bkz. Kararlar).
-- Mevcut testlerin ve plan nesnelerinin çıktıları değişmez (altın test).
-- `devtools::test()` `WARN 0`; `dev\check.ps1` `Status: OK`.
-- Dal: `slice-10-precision`. Commit yalnız kullanıcı onayından sonra.
-
-## Doğrulanmış gerçekler (R'da denendi)
-
-Formül (`z = qnorm(1 - (1 - conf)/2)`): `n0 = z^2 p (1 - p) / e^2`; sonlu evrende `n = n0 / (1 + (n0 - 1) / N)`.
-
-**Spec §6 sabit kıyası:** `z = 1.96`, p .5, e .05 → `n0 = 384.16`, 385. `qnorm` ile `z = 1.959964` → 384.1459 (cochranSize vinyeti: `cochran_n(p = 0.5, e = 0.05, conf.level = 0.95)` = 384.1459, birebir).
-
-**Spec §7 düzeltme sırası örneği (N = 1000, e .05, p .5, DEFF 1.5, kayıp %10):**
-
-| Adım | z = 1.96 (spec) | z = qnorm(.975) |
-|---|---|---|
-| n0 | 384.16 | 384.1459 |
-| sonlu evren | 277.7408 | 277.7335 |
-| × 1.5 | 416.6112 | 416.6002 |
-| / 0.9 | 462.9014 | 462.8891 |
-| ceiling | **463** | **463** |
-
-Spec'teki 277,74 / 416,6 / 462,9 / 463 değerleri doğru (z = 1.96 ile). Kaynak: cochranSize vinyeti `cochran_n_adj(384.1459, N = 1000)` = 277.7335 (birebir uyuşuyor). Kaynak doğrulaması **kısmi**: Cochran'ın kitabını (1977) doğrudan okuyamadım; formülün `(n0 - 1) / N` biçimi cochranSize belgesinden, `n0 / (1 + n0 / N)` biçimi kitaptaki yaygın aktarımdan bilinen. Açık soru 1.
-
-cochranSize yayımlanmış örnekleri (n0 ve düzeltilmiş n; bizim hesap, yuvarlama farkı not edildi):
-- N 2000, e .05, %95 → n0 385, düzeltilmiş 323 (bizim: 322.3855 → 323).
-- N 500, p .3, e .03, %99 → n0 1549, düzeltilmiş 379 (bizim: n0 1548.143, 378.1228 → 379).
-- n0 ızgarası (p .5, `ceiling`): %90: e .05 → 271, .03 → 752, .01 → 6764; %95: 385, 1068, 9604; %99: 664, 1844, 16588 (hepsi bizim hesapla birebir).
-
-**Üç farklı "sonlu evren" biçimi** (N 1000, e .05): `(n0 - 1)/N` biçimi 277.73; `n0/(1 + n0/N)` 277.53; Yamane `N / (1 + N e^2)` 285.71 (Israel 1992 tablosundaki 286). Küçük N ve büyük e'de farklar büyür (e .10, N 50: 33.11, 32.88, 33.33; N 20: 16.70, 16.55, 16.67). Bu paket `(n0 - 1)/N` biçimini kullanır (spec 277,74 bunu varsayar, kaynağı cochranSize), metinde adını yazar.
-
-Paket doğruluk kuralı: yalnız aynı formülü kullanan referanslar arasında tolerans geçerlidir: cochranSize ile n'de ±1 (rastgele yuvarlama farkı), farklı biçimlerle fark yöntem notudur (çelişki kuralı), başarısızlık değildir.
-
-## Kararlar (öneri; açık sorulara bak)
-
-- İşlev adı `plan_precision`; sınıf `plansize_precision` (spec §7 korkuluk tablosundaki "plan_precision() çıktısı"). Argümanlar: `p = 0.5` (beklenen oran, (0, 1)), `e` (yarı genişlik, zorunlu), `conf_level = 0.95`, `N = NULL` (evren büyüklüğü, tam sayı ≥ 2; NULL = sonsuz), `dropout = 0`, `deff = 1`.
-- Kısıtlar: `e` pozitif ve `e < min(p, 1 - p)` (aksi hâlde Wald aralığı [0, 1] dışına taşar; `err_precision_e`, öneri: hata); `conf_level` (0, 1) açık aralıkta ama 0.5-0.999 (aksi hâlde uyarı değil hata, çünkü anlamsız); `dropout` ve `deff` için mevcut `err_dropout`/`err_deff`.
-- Alanlar: `p`, `e`, `conf_level`, `z`, `N`, `n0`, `n_analytic` (sonlu evren sonrası), `n_required` (integer, tek `ceiling`), `dropout`, `deff`, `method = "cochran_wald"`.
-- Yuvarlama yalnız sonda. `N` verilmişse ve `n_required > N` ise sınıflı uyarı (`plansize_precision_warning`): kayıp/DEFF sonrası alınacak sayı evreni aşıyor, yani sayım gerekir.
-- Kaynaktaki "p = .5 en kötü durum" notu metinde: `p` kullanıcı belirtmediyse (varsayılan .5) metin "en muhafazakâr değer" der; `p` verildiyse `p` dayanağı bir `effect_basis` değildir (yapılandırılmış dayanak eklenmez, açık soru 3).
-- `sensitivity()` kesinlik planı kabul etmez (korkuluk). Verilen n ile elde edilen kesinlik için küçük yardımcı `precision_margin(n, p, conf_level, N, dropout, deff)` bu dilimde **yapılmaz** (açık soru 4).
-- **Karar (kullanıcı, 2026-11-14):** `write_methods(plan_precision(...))` kendi kesinlik paragrafını yazar; hata yoktur. Spec §7 korkuluk satırı buna göre güncellendi (hata yalnız `sensitivity()` ve hipotez testi işlevlerinde). Ayrı `write_methods_precision` işlevi **yok**: tek `write_methods` sınıfa göre dallanır.
-- Yöntem metni (EN/TR) `write_methods` içinde sınıfa göre kolu: gerekçe, formül adı (Cochran 1977, Wald/normal yaklaşım), `p`, `e`, güven düzeyi, `N`, düzeltme sırası, sonuç. Tek oran hipotez testi kapsam dışı olduğu metinde söylenmez (yalnız belge).
-
-## Review Focus
-
-- Spec örneği (463) ve ara değerleri (277.74, 416.6, 462.9) testte `fixed` biçimde sınanır; sıralama yanlışsa (önce kayıp, sonra DEFF, sonra FPC) başka sayı çıkar. Sıra testi bunu yakalamalı: `n0 / 0.9 * 1.5` sonra FPC = 390.5 vs 463.
-- `e >= min(p, 1 - p)`, `p = 0`, `p = 1`, `N = 1`, `N = 100.5`, `conf_level = 1` okunur hata verir; `N` çok küçükken (N = 10, e .05) n < N kalır, kayıp sonrası > N ise uyarı.
-- `plan_precision()` çıktısı `sensitivity()`, hipotez testi `print`'i ve elle sınıf değişikliği ile `err_precision_plan` verir; hata `plan_study()` önerir; `write_methods()` hariç. `plan_study()` planı da `write_methods`'a hâlâ doğru gider.
-- `write_methods(plan_precision(...))` hatasız ve kendi paragrafını yazar; `check_plan` sırası (sınıf dalı önce) yanlışsa bu test kırılır. Spec §7 satırıyla tutarlı.
-- Metinde kaynak parantezi yok ama formül adı ve sonlu evren biçimi var; `))` yok.
-- Altın dosya değişmez.
-
----
-
-### Task 1: `plan_precision` ve korkuluk
-
-**Files:**
-- Create: `R/precision.R`, `tests/testthat/test-precision.R`
-- Modify: `R/validate.R` (`check_plan` sınıf kolu), `R/methods.R` (sınıf kolu, bkz. karar 2), `inst/i18n/messages.csv`, `NAMESPACE` (roxygen), `tests/testthat/test-anova.R` yok, dokunma
-
-**Interfaces:**
-- `plan_precision(p = 0.5, e, conf_level = 0.95, N = NULL, dropout = 0, deff = 1)` → `plansize_precision`.
-- `print.plansize_precision(x, ...)`.
-- `check_plan(x)`: `inherits(x, "plansize_precision")` ise `fail("err_precision_plan")` (genel `err_plan` yerine, önce bu).
-- **Sıra kısıtı (`write_methods`, karar 2):** mevcut `write_methods()` ilk iş `check_plan()` çağırıyor. `write_methods` içindeki `plansize_precision` sınıf dalı `check_plan()` çağrısından **önce** gelmelidir; aksi hâlde yeni korkuluk kesinlik planını `write_methods`'ta da reddeder. Testler: `write_methods(plan_precision(e = 0.05))` hatasız metin verir (EN ve TR), `sensitivity(plan_precision(e = 0.05))` `err_precision_plan` verir, `write_methods(plan_study(...))` eskisi gibi çalışır.
-- Yeni anahtarlar: `err_precision_plan`, `err_precision_e`, `err_precision_p`, `err_precision_N`, `err_precision_conf`, `warn_precision_N`, `prec_title`, `prec_n`, `prec_p`, `prec_e`, `prec_conf`, `prec_N`, `prec_method`, `m_precision_intro`, `m_precision_result`, `m_precision_adjust_*`.
-
-**CSV (kilit anahtarlar)**
-
-| key | en | tr |
-|---|---|---|
-| err_precision_plan | This object comes from plan_precision() (precision of one proportion), not from a hypothesis test; use plan_study() for power-based planning. | Bu nesne bir hipotez testinden değil plan_precision() ile tek oranın kesinlik hesabından geliyor; güce dayalı planlama için plan_study() kullanın. |
-| err_precision_e | Argument 'e' must be a positive number smaller than both 'p' and 1 - 'p'. | 'e' argümanı hem 'p' hem de 1 - 'p' değerinden küçük pozitif bir sayı olmalı. |
-| err_precision_N | Argument 'N' must be a single whole number of at least 2 (or NULL for an unbounded population). | 'N' argümanı en az 2 olan tek bir tam sayı olmalı (sınırsız evren için NULL). |
-| warn_precision_N | The sample to recruit exceeds the population size N; a census is needed. | Alınması gereken örneklem evren büyüklüğü N'yi aşıyor; sayım yapılması gerekir. |
-| m_precision_result | The sample size for estimating a proportion (expected value %s) with a margin of error of %s at a %s%% confidence level was calculated with Cochran's formula (normal approximation) as %s. | Beklenen değeri %s olan bir oranın %s hata payıyla ve %%%s güven düzeyinde kestirilmesi için gerekli örneklem büyüklüğü, Cochran formülüyle (normal yaklaşım) %s olarak hesaplanmıştır. |
-
-(Diğer anahtarlar aynı kalıpta; Dilim 8'deki üç `m_adjust_*` kalıbı kullanılır, evren cümlesi `N` verilmişse eklenir: `n = n0 / (1 + (n0 - 1) / N)`.)
-
-- [ ] **Step 1: Başarısız testleri yaz (`test-precision.R`)**
-
-Beklenen sayılar yalnız kaynaktan (cochranSize vinyeti, spec); "kendi hesabın" yok. İlk testin tablosu yukarıdaki yayımlanmış değerlerdir.
-
-```r
-test_that("precision n matches published Cochran values", {
-  n0 <- function(p, e, cl) plan_precision(p = p, e = e, conf_level = cl)$n0
-  expect_equal(n0(0.5, 0.05, 0.95), 384.1459, tolerance = 1e-6)          # cochranSize vignette
-  grid <- list(c(0.90, 0.05, 271), c(0.90, 0.03, 752), c(0.90, 0.01, 6764),
-               c(0.95, 0.05, 385), c(0.95, 0.03, 1068), c(0.95, 0.01, 9604),
-               c(0.99, 0.05, 664), c(0.99, 0.03, 1844), c(0.99, 0.01, 16588))
-  for (g in grid) expect_identical(ceiling(n0(0.5, g[2], g[1])), g[3])
-  expect_identical(plan_precision(e = 0.05, N = 2000)$n_required, 323L)   # cochranSize: 323
-  expect_identical(plan_precision(p = 0.3, e = 0.03, conf_level = 0.99, N = 500)$n_required, 379L)
-  expect_equal(plan_precision(e = 0.05, N = 1000)$n_analytic, 277.7335, tolerance = 1e-6)
-})
-test_that("correction order is FPC, then deff, then dropout, one ceiling", {  # spec section 7
-  p <- plan_precision(e = 0.05, N = 1000, deff = 1.5, dropout = 0.1)
-  expect_identical(p$n_required, 463L)
-  expect_equal(p$n_analytic * 1.5, 416.6, tolerance = 1e-3)
-  expect_equal(p$n_analytic * 1.5 / 0.9, 462.89, tolerance = 1e-3)
-  expect_identical(ceiling(ceiling(p$n_analytic) * 1.5 / 0.9), 464)   # intermediate rounding would give 464
-  expect_identical(p$n_required, 463L)                                    # single ceiling at the end gives 463
-})
-```
-
-Hata ve korkuluk testleri (her biri `fixed = TRUE`, `msg()` ile): `e = 0.5` (p .5), `p = 0`/`1`, `N = 1`/`100.5`, `conf_level = 1`, `deff = 0.9`, `dropout = 1`; `sensitivity(plan_precision(e = 0.05))`, `print`'i bozuk sınıfla, `write_methods(plan_study(...))` hâlâ çalışır; `N = 20, e = 0.05`: kayıp %30 sonrası `n_required > N` için `expect_warning(class = "plansize_precision_warning")`. Metin testi: EN cümle birebir, TR `\u` kaçışlı ASCII, `))` yok.
-
-- [ ] **Step 2: Çalıştır, başarısız olduğunu gör**
-
-Run: `& "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::test(filter = 'precision')"`
-Expected: FAIL (`plan_precision` yok).
-
-- [ ] **Step 3: Kodu, CSV'yi ve belgeyi ekle**
-
-`plan_precision` roxygen: formül, `(n0 - 1)/N` biçiminin adı ve kaynağı, Wald yaklaşımının kenar durum sınırı (p 0'a ya da 1'e yakınsa kötü), p = .5 en muhafazakâr, kesinlik ≠ güç uyarısı.
-
-- [ ] **Step 4: Tüm kapıları çalıştır**
-
-Run: `& "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::test()"` ve `powershell -ExecutionPolicy Bypass -File dev\check.ps1`
-Expected: `FAIL 0 | WARN 0`, `Status: OK`.
-
-- [ ] **Step 5: Dilim sonu**
-
-Bağlamsız Claude incelemesi, genel inceleme, kullanıcı okuması ve denemesi (kullanıcıya: N .05'ten .03'e inince n neden 3 katı), `docs/devlog.md` girdisi. Commit yalnız istenirse (`feat: add Cochran precision planning`).
-
-## Tahmini boyut
-
-| Dosya | Satır |
+| Ad | Durum |
 |---|---|
-| `R/precision.R` (işlev, doğrulama, hesap, print, roxygen ~25) | ~85 |
-| `R/validate.R` (`check_plan` kolu) | ~4 |
-| `R/methods.R` (sınıf kolu, metin) | ~25 |
-| **Kod toplamı** | **~115** |
-| `inst/i18n/messages.csv` | ~22 satır (kod sayılmaz) |
-| `tests/testthat/test-precision.R` | ~80 (kod sayılmaz) |
+| `plan_precision(p = 0.5, e, conf_level = 0.95, N = NULL, dropout = 0, deff = 1)` -> `plansize_precision` (alanlar: `p, e, conf_level, z, N, n0, n_analytic, n_required` (integer), `dropout, deff, method = "cochran_wald"`) | yeni |
+| `print.plansize_precision`, `methods_precision(plan, lang)` (iç) | yeni |
+| `check_adjust(dropout, deff)` | yeni (iç) |
+| `check_plan`, `write_methods`, `sensitivity`, `fail`, `msg`, `msg_for`, `fmt_plain`, `fmt_prob`, `check_probability` (validate.R:15), `check_positive_number`, `is_num1` | var |
+| Sınıf `c("plansize_precision")`; `plansize_plan` kalıtmaz (kalıtırsa `check_plan` ve `print.plansize_plan` yanlış dala girer) | karar |
 
-150'nin altı. Aşarsa kesim noktası: **10a** (`plan_precision`, `print`, korkuluk), **10b** (yöntem metni). Roxygen çok uzarsa 10b'ye bölmek ilk adaydır.
+Kurallar: `p` ve `conf_level` için `check_probability`; `e` için `check_positive_number`, ek olarak `e < min(p, 1 - p)` (yeni `err_precision_e`); `N` NULL ya da tam sayı >= 2 (`err_precision_N`); `n_required` tam sayı sınırını aşarsa yeni `err_precision_big` (R/plan.R:122 kalıbı; `err_overflow` kullanılmaz, karar 10). `N` verilmiş ve `n_required > N` ise sınıflı uyarı `plansize_precision_warning` (`warn_precision_N`). Kesinlik planında `effect_source` ve `effect_basis` yok (karar 3).
 
-## Önceki planlarla çelişki / etkileşim
+## CSV anahtarları (hepsi yeni; `msg(key, ...)` tam kullandığı kadar argüman alır)
 
-- Spec §8 Dilim 10'u "kayıp payı ve DEFF" olarak da anar, ama Dilim 1'den beri `plan_study()` bunları zaten uyguluyor; bu dilimde yalnız kesinlik tarafına aynı sıra eklenir. `plan_study()`'ye dokunulmaz.
-- Dilim 8 plan notu `msg_for_opt("plan_note", ...)`: `plansize_precision` print'i kendi anahtarlarını kullanır, `test_spec` içine **girmez** (kesinlik bir hipotez testi değil; `names(test_spec)` ve `check_choice` listesi değişmez, Dilim 12'deki test seçici etkilenmez).
-- `check_plan` sınıf kolu eklenince Dilim 11'deki `simulate_power()` precision nesnesini aynı hata ile reddeder (ücretsiz).
+- Hata/uyarı: `err_precision_plan` (sensitivity/hipotez işlevi için, `plan_study()` önerir; argüman yok), `err_precision_e`, `err_precision_N` (argüman adı `%s`), `err_precision_big`, `warn_precision_N`. `p`, `conf_level`, `dropout`, `deff` için mevcut `err_probability`, `err_dropout`, `err_deff`.
+- Print: `prec_title`, `prec_n`, `prec_p`, `prec_e`, `prec_conf`, `prec_N`, `prec_method`; dropout ve deff için mevcut `plan_dropout`, `plan_deff` (print.R:21-22 kalıbı).
+- Yöntem metni: `m_precision_intro` (pwrss'siz: plansize sürümü), `m_precision_result` (p, e, güven %, n), `m_precision_fpc` (yalnız `N` verilmişse; formül adı), `m_precision_adjust_dropout|deff|both` (m_adjust_* kalıbı, "grup başına" yok).
+- Çift parantez dersi: `m_precision_*` metinlerinde parantez içinde parantez yok, derinlik <= 1. Kesinlik planında `effect_source` olmadığı için `chartr("()", "[]")` yolu gerekmez; ileride `effect_source` eklenirse methods.R:29'daki aynı dönüşüm zorunlu.
+- CSV: UTF-8, BOM yok, virgüllü alan tırnaklı. Türkçe metin yalnız CSV'de, R kodu ASCII. Devlog'u Edit ile yaz (kabuk tırnağı dersi).
 
-## Açık sorular
+## Testler (önce yazılır, `test-precision.R`)
 
-1. **Sonlu evren biçimi ve kaynak:** `(n0 - 1)/N` (cochranSize, spec'in 277,74'ü) mi, yoksa Cochran kitabındaki sade `n0/(1 + n0/N)` (277,53) mi? Birincisini öneriyorum; kitabı kendim okuyamadım, `cochranSize` ve spec'e dayanıyor. Doğrudan kaynak (kitap sayfası) sende var mı?
-2. **KARAR (kullanıcı, 2026-11-14): `write_methods` ve kesinlik.** `write_methods()` kesinlik planı için kendi yöntem paragrafını yazar; hata yalnız `sensitivity()` ve hipotez testi işlevlerinde. Ayrı `write_methods_precision` yok. Spec §7 korkuluk satırı güncellendi. Plan bu karara göre düzeltildi (Goal, Architecture, Kararlar, Task 1 sıra kısıtı, Review Focus). Artık açık değil.
-3. **`p` dayanağı:** `p = .5` varsayımı ya da pilottan gelen p için `effect_basis` benzeri bir alan (ve uyarı) ister misin? Öneri: bu dilimde hayır; metinde "p = .5 en muhafazakâr" cümlesi yeterli.
-4. **Kesinlik için duyarlılık:** Verilen n ile elde edilebilecek hata payı (`precision_margin()`) eklensin mi (~15 satır)? Öneri: ayrı küçük iş, bu dilimde yok.
-5. **`e` kuralı:** `e >= min(p, 1 - p)` hata mı (öneri) uyarı mı? `cochranSize` ve `samplingbook` (`e < p` önerisi) uyarı düzeyinde.
-6. **Ortalama kestirimi** (sürekli değişken için n = z² s² / e²) kapsam dışı mı? Spec yalnız oranı anıyor; kapsam dışı bırakıyorum.
-7. **Doğrulama paketi:** `cochranSize` (CRAN'da var) kurulu değil; yayımlanmış sayıları testte sabit değer olarak kullandım. Test dışı bir kez gerçek çağrıyla doğrulamak için kurulmasını ister misin (`lib = "D:/R-4.6.1/library"`)? `samplingbook::sample.size.prop` ikinci bağımsız kaynak olur (aynı biçim mi kontrol edilmeli).
+1. `n0` ve n tablo değerleri (aşağıdaki doğrulama tablosu): 9 hücreli n0 ızgarası, N 2000 -> 323, N 500 p .3 e .03 %99 -> 379, spec 384.16/385.
+2. Düzeltme sırası: N 1000, deff 1.5, kayıp .1 -> 463; ara değerler 277.73, 416.60, 462.89; iki yanlış sıra: (a) kayıp ve deff önce, sonra FPC 390.57; (b) deff, FPC, sonra kayıp (deff-önce sırası) 365.80, 406.45, 407; ara yuvarlama 464 (`ceiling(ceiling(a) * 1.5 / .9)`). Sıranın kaynağı yalnız spec §7 (karar 9).
+   `round_up()`: `expect_identical(round_up(400 * 1.1), 440)` (çıplak `ceiling(400 * 1.1)` 441 verir; `qnorm` ile z = 2 verilemez, kayan nokta durumu yardımcıyla sınanır; z = 2 için n0 = 399.99999999999994).
+3. Hatalar (`msg()` ile, ayrıca `plansize.lang = "tr"`): `e = 0.5`, `p = 0`, `p = 1`, `N = 1`, `N = 100.5`, `conf_level = 1`, `deff = 0.9`, `dropout = 1`, `e` eksik (`err_missing`), `e = 1e-7` (taşma).
+4. Uyarı: `N = 20, e = .05, dropout = .3` -> n_required 28 > 20, `expect_warning(class = "plansize_precision_warning")`; `N = 20` kayıpsız (19.06 -> 20) uyarı yok.
+5. Korkuluk: `sensitivity(plan_precision(e = .05))` `err_precision_plan`; elle sınıfı bozulmuş nesne (ne `plansize_precision` ne `plansize_plan`) `err_plan`; `sensitivity(plan_study(...))` eskisi gibi; hata metni `plan_study()` içerir.
+6. `write_methods(plan_precision(e = .05, N = 1000, deff = 1.5, dropout = .1))` hatasız, EN ve TR (TR için `\u` kaçışı), sayılar 463 ve kayıp oranı içerir (EN `10%`, TR `%10`); `write_methods(plan_study(...))` değişmez; `paren_depth <= 1` (yardımcı `test-source-parens.R` içinde, dosyalar arası paylaşılmaz: `helper-plan.R`'a taşı); formül adı metinde, `))` yok.
+7. `print` EN/TR çıktısı ve `options(OutDec = ",")` altında sayı biçimi (`fmt_plain` kullanımı, methods.R:6 kalıbı).
+8. `devtools::test()` altın testleri (`test-golden.R`) dokunulmadan geçer; `golden_errors()` listesine kesinlik eklenmez (dosya yeniden üretilmez).
+
+## Sayı doğrulaması (R 4.6.1'de çalıştırıldı, 2026-11-14)
+
+Formül: `z = qnorm(1 - (1 - conf)/2)`; `n0 = z^2 p (1 - p) / e^2`; `n = n0 / (1 + (n0 - 1)/N)`.
+
+| Beklenen değer | Kaynak | Durum |
+|---|---|---|
+| z 1.96, p .5, e .05: n0 384.16, tavan 385; N 1000, DEFF 1.5, kayıp %10: 277.74, 416.6, 462.9, 463 | spec §6, §7 | spec sayıları z = 1.96 ile yeniden hesaplandı: 384.16, 277.7408, 416.6112, 462.9014 (spec'le uyuşur). `qnorm` ile 384.1459, 277.7335, 416.6002, 462.8891, hepsi 463. Spec'in kendi dayanağı bu hesabın aynısı, bağımsız yöntem değil |
+| n0 ızgarası (%90/95/99 x e .05/.03/.01, p .5): 271, 752, 6764; 385, 1068, 9604; 664, 1844, 16588 | R'da qnorm formülü ile yeniden üretildi | Yalnız formülün kendisi; bağımsız paket yok. Izgara vinyette ayrıca kontrol edilmedi; testte yalnız formül tutarlılığı olarak kalır |
+| N 1000 -> 277.7335; N 2000 -> 322.39 (323); N 500 p .3 e .03 %99 -> n0 1548.14, 378.12 (379) | `cochranSize` 0.1.0 belge ve vinyeti (araştırma raporu, ağdan) | Doğrulandı; paket kurulmadı |
+| z^2 p q / e^2 tutarlılığı | `z * sqrt(p q / n0)` = .05 | yalnız geri-dönüş kontrolü, kaynak değil |
+
+Bulgu (eski taslakta yoktu): "sonlu evren" formülü kaynağa göre değişiyor, N 1000, e .05, p .5 için: (A) `n0/(1 + (n0 - 1)/N)` 277.73 (spec'in 277,74'ü); (B) `n0/(1 + n0/N)` 277.53; (C) Yamane `N/(1 + N e^2)` 285.71. Spec örneği (463) A ve B ile çıkar. Seçim A. Bağımsız türetme: n, kestiricinin GERÇEK varyansından gelmeli, `(N - n)/(N - 1) * PQ / n = (e/z)^2`; kökü tam A (uniroot 277.73345, A ile aynı). Kestiriciyi hedef yapan `(1 - n/N) pq/(n - 1)` biçimi plana girmez. Simülasyon (iadesiz, N 1000, 500 bir/500 sıfır, 4e5 tekrar, tohum 1 ve 2): n 278 için SD .02550 ve .02549, hedef e/z = .02551; n 277 için .02557 ve .02552. Monte Carlo SE ~3e-5, simülasyon tek başına 277 ile 278'i ayıramaz; kesin kanıt analitik varyans (277: .025557 > hedef, 278: .025494 < hedef). Kitap kaynağı elle okunmadı. Bağımsız ikinci paket yok (`cochranSize`, `samplingbook` kurulu değil; `pwr`, `pwrss` bu hesabı yapmıyor). Tolerans kuralı (±1) farklı biçimler arasında geçmez: fark yöntem notudur, başarısızlık değil.
+
+## Boyut tahmini
+
+`R/precision.R` ~90 (hesap+doğrulama ~35, print ~15, `methods_precision` ~20, roxygen ayrı ~25 sayılmazsa), `validate.R` ~8, `plan.R` 0 net, `methods.R` ~3: toplam ~105-120, hedef 150'nin altı. CSV ~20 satır ve testler ~90 satır kod sayılmaz. Kesim noktası: 10a = `plan_precision` + `print` + korkuluk + `check_adjust`; 10b = `methods_precision` + CSV yöntem anahtarları. Roxygen ya da yöntem metni uzarsa 10b'ye böl.
+
+## Risk ve inceleme odağı
+
+- Sıra: FPC, deff, kayıp, tek `round_up` (ceiling - 1e-9); testte yanlış sıra ve ara yuvarlama ayrı ayrı yakalanır.
+- `write_methods` kolu `check_plan`'dan önce olmazsa kesinlik planı reddedilir (test 6).
+- Altın dosya: `check_adjust` çıkarımı `err_dropout`/`err_deff` mesajlarını değiştirmemeli (devlog 9: plan altın dosyayı kırdı, öngörmedi). Önce `devtools::test(filter = "golden")` çalıştır; kırılırsa dosyaya dokunma, dur ve sor.
+- Yardım sayfası: `p = .5` en muhafazakar değer; Wald/normal yaklaşım p 0 ya da 1'e yakınken ve küçük n'de zayıf; `e` yarı genişlik, tam genişlik değil (öğrenci tuzağı); kesinlik güç değildir.
+- Wald kapsama zayıflığı (R'da `dbinom` toplamıyla hesaplandı): gerçek kapsama p .1, n 139 için .933; p .02, n 31 için .465 (hedef .95). Yardım sayfasında yazılı; simülasyon Dilim 13b açık sorusunda.
+- Bağlamsız inceleme ajanı yalnız belge ve diff'i görür: sayıların kaynak tablosu bu plandan okunur, ajan formülü kendi hesabıyla "doğrulamasın".
+
+## Kararlar (kullanıcı, 2026-11-14)
+
+Dayanak: `docs/research/2026-11-14-dilim-10-kararlar.md`.
+
+1. **Sonlu evren biçimi:** A `n0/(1 + (n0 - 1)/N)`. Dayanak: gerçek varyansın kökü, spec 277,74, `cochranSize` 0.1.0 belgesi ve vinyeti A'yı kullanıyor (277.7335, 323, 379; araştırma raporunda ağdan okundu). `samplingbook::sample.size.prop` B kullanıyor; yardım sayfası iki biçimin en çok 1 kişi ayrıştığını yazar. Cochran (1977) sayfası okunmadı.
+2. **Doğrulama paketi:** kurulmaz. Beklenen sayılar `cochranSize` vinyetinden (sabit değer, kaynak yorumuyla).
+3. **`p` dayanağı:** ayrı alan yok; yalnız `p = .5` en muhafazakâr notu. `effect_source` yok.
+4. **`precision_margin()`:** bu dilimde yok.
+5. **`e` sınırı:** `e >= min(p, 1 - p)` hata (`err_precision_e`). `samplingbook` da `stop` veriyor.
+6. **Ortalama kestirimi:** kapsam dışı.
+7. **`check_adjust`:** `plan.R`'dan çıkarılır. Önce `devtools::test(filter = "golden")`; kırılırsa dur ve sor.
+8. **Hesap motoru kuralı:** istisna. `pwrss` 1.3.3'te kesinlik işlevi yok; kapalı Cochran formülü elle yazılır, beklenen değerler kaynaktan.
+9. **Düzeltme sırası:** spec sırası (FPC, deff, kayıp; 463) kalır. Yayımlanmış kaynakla DOĞRULANAMADI (deff sonra yanıt oranı kısmı StatCan kaynağıyla destekli; FPC'nin deff'ten önce gelmesi için kaynak yok). Deff-önce sırası 407 verir (Kish adı doğrulanmadı); 463 muhafazakâr yönde. Yardım sayfası sırayı ve bu durumu yazar.
+10. **Taşma mesajı:** yeni `err_precision_big`; `err_overflow` ("effect ve deff") kesinlikte kullanılmaz.
+
+Önceden kapanan: `write_methods` kesinlik paragrafı yazar (kullanıcı kararı, 2026-11-14).

@@ -40,7 +40,6 @@ Her dilim tek daldır ve yaklaşık 150 satır kod hedefler. Aşarsa böl.
 5. `devtools::test()` ve `dev\check.ps1` geçmeden kullanıcıya getirme. Hedef 0 hata, 0 uyarı.
 6. Kullanıcı ders düzeyinde R biliyor. Kısa Türkçe anlatım ver: her fonksiyon ne yapar, neden böyle yazıldı, istatistik neye dayanıyor.
 7. Kullanıcının konsolda deneyeceği 2-3 örnek ve bilerek hatalı bir girdi ver.
-8. Kullanıcı bir anlama sorusu yanıtlasın ya da küçük bir değişiklik yaptırsın.
-9. Onaydan sonra `main`'e birleştir ve `docs/devlog.md` dosyasına ajanın doğru yaptığı ve kaçırdığı şeyi yaz.
+8. Onaydan sonra `main`'e birleştir ve `docs/devlog.md` dosyasına ajanın doğru yaptığı ve kaçırdığı şeyi yaz.
 
-Kullanıcının açıklayamadığı kod `main`'e girmez. Commit ve push yalnız kullanıcı isteyince yapılır.
+Commit ve push yalnız kullanıcı isteyince yapılır.

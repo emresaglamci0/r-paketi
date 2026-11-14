@@ -104,7 +104,7 @@ write_methods(p, lang = "tr")
 - `effect_source` isteğe bağlı serbest metindir, metne aynen yazılır.
 - Dil: `getOption()` ile paket düzeyinde ayarlanır, varsayılan `"en"`. `write_methods(lang = )` bunu ezer.
 - Türkçe metin şablonları ve mesajları kod içine değil `inst/` altındaki UTF-8 dosyalara konur. Böylece R kodu ASCII kalır.
-- Gerekli n'ye düzeltme sırası: analitik n (varsa sonlu evren düzeltmesi), sonra `× deff`, sonra `/ (1 - dropout)`. Yukarı yuvarlama yalnız en sonda bir kez yapılır. Örnek: N=1000, e=.05, p=.5, DEFF=1.5, kayıp %10 için 277,74, 416,6, 462,9 ve sonuç 463. Dilim 10'da bu sıra kaynakla doğrulanır.
+- Gerekli n'ye düzeltme sırası: analitik n (varsa sonlu evren düzeltmesi), sonra `× deff`, sonra `/ (1 - dropout)`. Yukarı yuvarlama yalnız en sonda bir kez yapılır. Örnek: N=1000, e=.05, p=.5, DEFF=1.5, kayıp %10 için 277,74, 416,6, 462,9 ve sonuç 463. Dilim 10'da yayımlanmış kaynakla doğrulanamadı; sıra kullanıcı kararıyla korundu (2026-11-14, `docs/research/2026-11-14-dilim-10-kararlar.md`). Önce deff uygulanırsa sonuç 407 olur.
 - Paket yalnızca planlama yapar, ham veri istemez.
 
 ### İlk korkuluklar
