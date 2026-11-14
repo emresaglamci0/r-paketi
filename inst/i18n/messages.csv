@@ -73,7 +73,7 @@ m_adjust_both_t_paired,"Allowing for an expected dropout rate of %s%% and a desi
 err_infeasible_plan_t_paired,"pwrss cannot solve this design: the required number of participants is under 4 or over 10 billion. A very high r makes dz much larger than d; check effect, r, alpha and power.","pwrss bu tasarımı çözemiyor: gereken katılımcı sayısı 4'ten küçük ya da 10 milyardan büyük. Çok yüksek bir r, dz değerini d'den çok daha büyük yapar; effect, r, alpha ve power değerlerini kontrol edin."
 err_k,Argument 'k' must be a single whole number of at least 2.,Argüman 'k' en az 2 olan tek bir tam sayı olmalı.
 err_k_unused,"Argument 'k' is used only with test = ""anova_oneway"".","Argüman 'k' yalnız test = ""anova_oneway"" ile kullanılır."
-err_effect_type_unused,"Argument 'effect_type' is used only with test = ""anova_oneway"".","Argüman 'effect_type' yalnız test = ""anova_oneway"" ile kullanılır."
+err_effect_type_unused,"Argument 'effect_type' is used only with test = ""anova_oneway"" or ""reg_overall"".","Argüman 'effect_type' yalnız test = ""anova_oneway"" ya da ""reg_overall"" ile kullanılır."
 err_eta2,"With effect_type = ""eta2"", 'effect' must be a single number strictly between 0 and 1.","effect_type = ""eta2"" ise 'effect' 0 ile 1 arasında (uç değerler hariç) tek bir sayı olmalı."
 err_alt_anova,The F test of a one-way ANOVA has no direction; do not set 'alternative'.,Tek yönlü ANOVA'nın F testinin yönü yoktur; 'alternative' belirtmeyin.
 err_infeasible_plan_anova_oneway,"pwrss cannot solve this design: the effect is too small or too large for a computable sample size. Check effect, k, alpha and power.","pwrss bu tasarımı çözemiyor: etki, hesaplanabilir bir örneklem büyüklüğü için çok küçük ya da çok büyük. effect, k, alpha ve power değerlerini kontrol edin."
@@ -138,3 +138,27 @@ m_result_chisq_indep,"For Pearson's chi-square test of independence without cont
 m_adjust_dropout_chisq_indep,"Allowing for an expected dropout rate of %s%%, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
 m_adjust_deff_chisq_indep,"Allowing for a design effect of %s, the recruitment target was %s participants.",Tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
 m_adjust_both_chisq_indep,"Allowing for an expected dropout rate of %s%% and a design effect of %s, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s ve tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+val_reg_overall,multiple regression (overall R-squared F test),çoklu regresyon (genel R² F testi)
+m_intro_reg_overall,"An a priori power analysis was conducted in R with the plansize package (version %2$s), using pwrss (version %3$s), to determine the sample size required for the planned analysis, a %1$s.","Örneklem büyüklüğü, %s için R ortamında plansize (sürüm %s) ve pwrss (sürüm %s) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir."
+err_r2,"For effect_type = ""r2"", 'effect' must be the model R-squared, a single number greater than 0 and at most 0.99.","effect_type = ""r2"" için 'effect' modelin R² değeri olmalı: 0'dan büyük, en fazla 0,99 olan tek bir sayı."
+err_f2,"For effect_type = ""f2"", 'effect' must be Cohen's f-squared, a single number greater than 0 and at most 99 (R-squared = f2 / (1 + f2) at most 0.99).","effect_type = ""f2"" için 'effect' Cohen f² olmalı: 0'dan büyük, en fazla 99 olan tek bir sayı (R² = f2 / (1 + f2) en fazla 0,99)."
+err_effect_type_reg,"For test = ""reg_overall"", 'effect_type' is required and must be ""r2"" or ""f2"" (R-squared or Cohen's f-squared).","test = ""reg_overall"" için 'effect_type' zorunlu ve ""r2"" ya da ""f2"" olmalı (R² ya da Cohen f²)."
+err_predictors,Argument 'predictors' must be a single whole number from 1 to 1000.,'predictors' argümanı 1 ile 1000 arasında tek bir tam sayı olmalı.
+err_predictors_unused,"Argument 'predictors' is used only with test = ""reg_overall"".","'predictors' argümanı yalnız test = ""reg_overall"" ile kullanılır."
+err_alt_reg,The overall F test of a regression has no direction; do not set 'alternative'.,Regresyonun genel F testinin yönü yoktur; 'alternative' belirtmeyin.
+err_infeasible_plan_reg_overall,"pwrss cannot solve this design: the effect is either so large that fewer than predictors + 2 participants would suffice, or so small that more than 10 billion would be needed. Check effect, effect_type, predictors, alpha and power.","pwrss bu tasarımı çözemiyor: etki ya yordayıcı sayısı + 2'den az katılımcının yeteceği kadar büyük ya da 10 milyardan fazla katılımcı gerektirecek kadar küçük. effect, effect_type, predictors, alpha ve power değerlerini kontrol edin."
+plan_effect_reg_overall,Expected effect size (R-squared): %s,Beklenen etki büyüklüğü (R²): %s
+plan_effect_reg_overall_f2,Expected effect size (Cohen's f-squared): %s,Beklenen etki büyüklüğü (Cohen f²): %s
+plan_r2,Equivalent R-squared: %s,Karşılık gelen R²: %s
+plan_predictors,Number of predictors: %s,Yordayıcı sayısı: %s
+plan_n_group_reg_overall,Participants to recruit (includes dropout and design effect): %s,Alınması gereken katılımcı sayısı (kayıp ve tasarım etkisi dahil): %s
+sens_title_reg_overall,Smallest detectable effect (R-squared),Saptanabilir en küçük etki (R²)
+sens_title_reg_overall_f2,Smallest detectable effect (Cohen's f-squared),Saptanabilir en küçük etki (Cohen f²)
+col_n_recruited_reg_overall,Recruited participants,Alınan katılımcı
+col_n_effective_reg_overall,Effective participants,Etkin katılımcı
+m_effect_reg_overall,The effect size used for planning was R-squared = %s%s for a regression model with %s predictors.,Planlamada %3$s yordayıcılı regresyon modeli için etki büyüklüğü R² = %1$s olarak alınmıştır%2$s.
+"m_effect_reg_overall_f2","The effect size used for planning was Cohen's f-squared = %s%s, equivalent to R-squared = %s, for a regression model with %s predictors.","Planlamada %4$s yordayıcılı regresyon modeli için etki büyüklüğü Cohen f² = %1$s%2$s olarak alınmıştır (R² karşılığı: %3$s)."
+m_result_reg_overall,"For the overall F test of the regression model (H0: R-squared = 0) with alpha = %s and power = %s, the required sample size was %s participants in total. Predictors were treated as fixed; with random predictors the power is slightly lower.","Alfa = %s ve güç = %s için regresyon modelinin genel F testinde (H0: R² = 0) gerekli örneklem büyüklüğü toplam %s katılımcıdır. Yordayıcılar sabit varsayılmıştır; rastgele yordayıcılarda güç biraz düşüktür."
+m_adjust_dropout_reg_overall,"Allowing for an expected dropout rate of %s%%, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_adjust_deff_reg_overall,"Allowing for a design effect of %s, the recruitment target was %s participants.",Tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_adjust_both_reg_overall,"Allowing for an expected dropout rate of %s%% and a design effect of %s, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s ve tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.

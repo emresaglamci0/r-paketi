@@ -6,12 +6,12 @@
 #' then applies the design effect and dropout
 #' correction with one final ceiling.
 #'
-#' @param test `"t_independent"` (default), `"t_paired"`, `"anova_oneway"`, `"prop_two"`, `"cor_pearson"` or `"chisq_indep"`.
+#' @param test `"t_independent"` (default), `"t_paired"`, `"anova_oneway"`, `"prop_two"`, `"cor_pearson"`, `"chisq_indep"` or `"reg_overall"` (overall F test of a multiple regression).
 #' @param effect Effect size, a single number: positive for the t tests and ANOVA; not used with `"prop_two"`;
 #'   for `"cor_pearson"` the expected Pearson r, between -1 and 1 and not 0 (its sign sets the
 #'   direction of a one-sided test); for `"chisq_indep"` Cohen's w, above 0 and at most 1 (the
 #'   test has no direction, so `alternative` must not be set). Cohen's d for the t tests; for
-#'   "anova_oneway", Cohen's f or eta squared as set by effect_type. For
+#'   "anova_oneway", Cohen's f or eta squared as set by effect_type. For "reg_overall", R squared or Cohen f squared as set by effect_type. For
 #'   `"t_paired"`, d is the mean change divided by the SD of one measurement (pre and
 #'   post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.
 #'   For "chisq_indep", w is not Cramer's V: for tables larger than 2 x 2, w = V * sqrt(min(rows, cols) - 1). w above 1 is possible when rows and cols are both at least 3, but pwrss does not support it.
@@ -20,12 +20,23 @@
 #'   for the other tests. For `"cor_pearson"`, give the expected correlation as `effect`, not as `r`.
 #' @param k Number of equal-sized groups, a single whole number of at least 2.
 #'   Required for `"anova_oneway"`; an error for the t tests.
-#' @param effect_type `"f"` (default) or `"eta2"`: whether `effect` for
-#'   `"anova_oneway"` is Cohen's f or eta squared (converted by f = sqrt(eta2 / (1 - eta2))).
-#'   An error for the t tests. The F test has no direction, so `alternative`
-#'   must not be set for `"anova_oneway"`.
+#' @param effect_type For `"anova_oneway"`: `"f"` (default) or `"eta2"`, whether `effect`
+#'   is Cohen's f or eta squared (converted by f = sqrt(eta2 / (1 - eta2))).
+#'   The F test has no direction, so `alternative` must not be set for `"anova_oneway"`.
 #'   Use eta squared from a one-way design; partial eta squared from a design with other
 #'   factors or covariates is not the same quantity.
+#'   For `"reg_overall"`: required, `"r2"` or `"f2"` (exact match, no default). `"r2"` is the
+#'   R squared of the whole model (share of variance explained by all predictors together,
+#'   intercept excluded), above 0 and at most 0.99; `"f2"` is Cohen's f squared = R2 / (1 - R2),
+#'   above 0 and at most 99 (not the partial f squared of one predictor).
+#'   Cohen's f squared benchmarks .02, .15 and .35 (small, medium, large) are not R squared
+#'   values: as R squared they are .02, .13 and .26. Entering .15 as `"r2"` instead of `"f2"`
+#'   gives a different plan without an error, so check which measure your source reports.
+#'   Do not enter an adjusted R squared (papers label it "adjusted" or "R2adj"); use the
+#'   plain R squared. An error for the other tests.
+#' @param predictors Number of predictors in the regression model, a single whole number from
+#'   1 to 1000. Required for `"reg_overall"`; an error for the other tests. Count a
+#'   categorical predictor by its dummy variables (a 4-level factor is 3 predictors).
 #' @param p1,p2 Expected proportions in group 1 and group 2, each strictly between 0 and 1 and
 #'   different. Required for `"prop_two"` (pooled-SE z test; the effect is the difference
 #'   p1 - p2, so `effect` must not be given); an error for the other tests.
@@ -46,10 +57,12 @@
 #' For "cor_pearson", n uses the Fisher z approximation without the bias correction of pwr::pwr.r.test (about 1 participant higher), so results can differ slightly from pwr or G*Power; the approximation is rough below about 10 participants but errs on the safe side.
 #'
 #' For "chisq_indep", n is for Pearson's chi-square test without continuity correction; in R use chisq.test(x, correct = FALSE) for 2 x 2 tables, as the default Yates correction lowers power.
+#'
+#' For "reg_overall", n is the total for the overall F test of a multiple regression (H0: R squared = 0), with `groups` 1. The F model treats the predictors as fixed; with random predictors the power is slightly lower (about 0.78 instead of 0.80 in a simulation with R2 = 0.13 and 3 predictors). Tests of single predictors and of R squared change are not covered.
 #' @return A list of class `plansize_plan`.
 #' @export
 plan_study <- function(test = "t_independent", effect, r = NULL, k = NULL,
-                       p1 = NULL, p2 = NULL, rows = NULL, cols = NULL,
+                       p1 = NULL, p2 = NULL, rows = NULL, cols = NULL, predictors = NULL,
                        effect_type = c("f", "eta2"),
                        effect_basis = c("unknown", "prior_study", "pilot",
                                         "smallest_of_interest", "convention", "observed"),
@@ -61,7 +74,8 @@ plan_study <- function(test = "t_independent", effect, r = NULL, k = NULL,
   given <- c(if (!missing(effect)) "effect", if (!missing(effect_type)) "effect_type",
              if (!missing(alternative)) "alternative", if (!is.null(p1)) "p1", if (!is.null(p2)) "p2",
              if (!is.null(rows)) "rows", if (!is.null(cols)) "cols")
-  args <- list(r = r, k = k, effect_type = effect_type, p1 = p1, p2 = p2, rows = rows, cols = cols)
+  args <- list(r = r, k = k, effect_type = effect_type, p1 = p1, p2 = p2, rows = rows, cols = cols,
+               predictors = predictors)
   if (!missing(effect)) args$effect <- effect
   prep <- spec$prepare(args, given)
   effect_basis <- check_choice(effect_basis, eval(formals()$effect_basis), "effect_basis")

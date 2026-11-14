@@ -86,3 +86,17 @@ engine_mde_chisq <- function(n, df, alpha, power) {
     ceil.n = FALSE, verbose = 0))
   r$w
 }
+
+# Overall F test of a multiple regression (H0: R-squared = 0; k predictors, treated as fixed). Returns total n.
+engine_n_reg <- function(r2, k, alpha, power) {
+  r <- guard_pwrss(pwrss::power.f.reg(r.squared.change = r2, k.total = k, power = power, alpha = alpha,
+    ceil.n = FALSE, verbose = 0), "err_infeasible_plan_reg_overall")
+  r$n
+}
+
+# Smallest detectable R-squared for total n.
+engine_mde_reg <- function(n, k, alpha, power) {
+  r <- guard_pwrss(pwrss::power.f.reg(r.squared.change = NULL, k.total = k, n = n, power = power,
+    alpha = alpha, ceil.n = FALSE, verbose = 0))
+  r$r.squared.change
+}

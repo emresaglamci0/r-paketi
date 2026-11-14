@@ -23,7 +23,13 @@
 reject_anova_args <- function(a, given) {
   if (!is.null(a[["k"]])) fail("err_k_unused")
   if ("effect_type" %in% given) fail("err_effect_type_unused")
+  reject_predictors(a)
   reject_table_args(given)
+}
+
+# predictors belongs to reg_overall only.
+reject_predictors <- function(a) {
+  if (!is.null(a[["predictors"]])) fail("err_predictors_unused")
 }
 
 # rows and cols belong to chisq_indep only.
@@ -41,6 +47,10 @@ t_extra <- function(a) {
 }
 
 variant_plain <- function(plan) plan$test
+
+variant_reg <- function(plan) {
+  if (identical(plan$effect_type, "f2")) c(paste0(plan$test, "_f2"), plan$test) else plan$test
+}
 
 variant_anova <- function(plan) {
   if (identical(plan$effect_type, "eta2")) c(paste0(plan$test, "_eta2"), plan$test) else plan$test
@@ -104,6 +114,7 @@ test_spec <- list(
     prepare = function(a, given) {
       check_required(!"effect" %in% given, "effect")
       reject_p_args(a)
+      reject_predictors(a)
       reject_table_args(given)
       k <- a[["k"]]
       if (!is_num1(k) || k < 2 || k != round(k) || k > .Machine$integer.max) fail("err_k")
@@ -231,6 +242,7 @@ test_spec <- list(
       if (!is.null(a[["k"]])) fail("err_k_unused")
       if ("effect_type" %in% given) fail("err_effect_type_unused")
       reject_p_args(a)
+      reject_predictors(a)
       if ("alternative" %in% given) fail("err_alt_chisq")
       if (!is.null(a[["r"]])) fail("err_r_unused")
       list(effect = effect, effect_test = effect,
@@ -253,6 +265,55 @@ test_spec <- list(
         ok_dim(plan[["rows"]]) && ok_dim(plan[["cols"]]) &&
         identical(plan[["df"]], as.integer((plan$rows - 1L) * (plan$cols - 1L))) &&
         is.null(plan[["r"]]) && isTRUE(is.na(plan[["k"]])) && isTRUE(is.na(plan[["effect_type"]]))
+    }
+  ),
+  reg_overall = list(
+    directional = FALSE, min_n = 3, method = "f_reg_overall_r2",
+    groups = function(a) 1L,
+    prepare = function(a, given) {
+      check_required(!"effect" %in% given, "effect")
+      # The signature default is for the ANOVA; here the choice must be explicit and exact.
+      if (!"effect_type" %in% given || length(a$effect_type) != 1L) fail("err_effect_type_reg")
+      effect_type <- check_choice(a$effect_type, c("r2", "f2"), "effect_type", exact = TRUE)
+      effect <- a[["effect"]]
+      if (effect_type == "r2") {
+        if (!is_num1(effect) || effect <= 0 || effect > 0.99) fail("err_r2")
+      } else if (!is_num1(effect) || effect <= 0 || effect > 99) fail("err_f2")
+      k <- a[["predictors"]]
+      if (!is_num1(k) || k < 1 || k > 1000 || k != round(k)) fail("err_predictors")
+      if ("alternative" %in% given) fail("err_alt_reg")
+      if (!is.null(a[["k"]])) fail("err_k_unused")
+      reject_table_args(given)
+      reject_p_args(a)
+      if (!is.null(a[["r"]])) fail("err_r_unused")
+      list(effect = effect,
+           effect_test = if (effect_type == "f2") effect / (1 + effect) else effect,
+           extra = list(effect_type = effect_type, k = NA_integer_, r = NULL, predictors = as.integer(k)))
+    },
+    n = function(p) engine_n_reg(p$effect_test, p$predictors, p$alpha, p$power),
+    # Engine returns R-squared; report in the unit the user entered.
+    mde = function(n, plan, power) {
+      r2 <- engine_mde_reg(n, plan$predictors, plan$alpha, power)
+      if (plan$effect_type == "f2") r2 / (1 - r2) else r2
+    },
+    effect_lines = function(plan) c(
+      msg_for("plan_effect", variant_reg(plan), fmt_num(plan$effect)),
+      if (plan$effect_type == "f2") msg("plan_r2", fmt_num(round(plan$effect_test, 2))),
+      msg("plan_predictors", plan$predictors)),
+    effect_sentence = function(plan, src, lang) {
+      args <- if (plan$effect_type == "f2") list(fmt_num(plan$effect), src, fmt_num(round(plan$effect_test, 2)), plan$predictors)
+              else list(fmt_num(plan$effect), src, plan$predictors)
+      do.call(msg_for, c(list("m_effect", variant_reg(plan)), args, list(lang = lang)))
+    },
+    variant = variant_reg,
+    check = function(plan) {
+      k <- plan[["predictors"]]
+      is.integer(k) && length(k) == 1L && !is.na(k) && k >= 1L && k <= 1000L &&
+        is.character(plan$effect_type) && length(plan$effect_type) == 1L && plan$effect_type %in% c("r2", "f2") &&
+        is_num1(plan$effect_test) && plan$effect_test > 0 && plan$effect_test <= 0.99 && is_num1(plan$effect) &&
+        (if (plan$effect_type == "r2") identical(plan$effect, plan$effect_test)
+         else isTRUE(all.equal(plan$effect_test, plan$effect / (1 + plan$effect)))) &&
+        identical(as.numeric(plan$groups), 1) && is.null(plan[["r"]]) && isTRUE(is.na(plan[["k"]]))
     }
   )
 )

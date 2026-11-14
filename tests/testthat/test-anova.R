@@ -115,7 +115,8 @@ test_that("no sprintf warnings across tests and variants", {
     list(test = "prop_two", p1 = 0.45, p2 = 0.30),
     list(test = "cor_pearson", effect = 0.3),
     list(test = "cor_pearson", effect = -0.3, alternative = "one.sided"),
-    list(test = "chisq_indep", effect = 0.3, rows = 2, cols = 3))
+    list(test = "chisq_indep", effect = 0.3, rows = 2, cols = 3),
+    list(test = "reg_overall", effect = 0.13, effect_type = "r2", predictors = 3))
   for (a in plans) for (dr in c(0, 0.1)) for (de in c(1, 1.5)) for (lg in c("en", "tr")) {
     p <- do.call(plan_study, c(a, list(effect_basis = "pilot", dropout = dr, deff = de)))
     withr::with_options(list(plansize.lang = lg), {
