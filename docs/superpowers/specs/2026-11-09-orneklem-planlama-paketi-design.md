@@ -50,7 +50,7 @@ Pazar araştırması boşluğu "orta" buldu: güç hesabı, etki büyüklüğü 
 - İlk testler t testi, ANOVA, oran ve korelasyondur; birkaç test daha eklenebilir.
 - 5. madde (karma model, simülasyon, anket deseni) geliştirilecek, kapsamı aşağıdaki gibi önerilmiştir.
 - Hedef kitle R bilen araştırmacı ile R kurabilen ama kod yazmayan tez öğrencisidir. Kullanım kolaylığı önceliklidir.
-- Arayüz yalnız yerelde çalışır (`run_app()`). Barındırılan web uygulaması yoktur.
+- Grafik arayüz (Shiny) yoktur (kullanıcı kararı, 2026-11-14). Paket R konsolunda ve RStudio'da R fonksiyonlarıyla kullanılır. Barındırılan web uygulaması yoktur.
 - Kodu Claude yazar, Claude inceler. Codex kullanılmaz.
 - Kullanıcı her dilimin kodunu okur, anlar ve dener.
 - Git deposu çalışma klasöründedir.
@@ -58,8 +58,8 @@ Pazar araştırması boşluğu "orta" buldu: güç hesabı, etki büyüklüğü 
 ## 5. Oluşturucunun kararları (kullanıcı henüz ayrıca onaylamadı)
 
 - Fonksiyon adları ve kod yorumları İngilizce, çıktı dili `lang = "tr"` ya da `"en"`.
-- S3 sınıflı tek plan nesnesi. Hem R fonksiyonları hem Shiny aynı çekirdeği kullanır.
-- `pwrss` `Imports` içinde. `effectsize` yalnızca ikinci aşamada eklenir, çünkü ilk sürümde veri analizi yoktur. `shiny` `Imports` içinde, çünkü kod yazmayan öğrenci paketi kurup doğrudan `run_app()` çalıştırabilmelidir.
+- S3 sınıflı tek plan nesnesi.
+- `pwrss` `Imports` içinde. `Suggests`: `pwr` ve `testthat` (test), `DMAR` (yalnız Dilim 9c'deki rastgele yordayıcı bilgi satırı; kurulu değilse satır gösterilmez, hata vermez). `effectsize` yalnızca ikinci aşamada eklenir, çünkü ilk sürümde veri analizi yoktur. `shiny` kullanılmaz.
 - Lisans MIT.
 - Paket, deponun kökünde bulunur.
 - Simülasyon ayrı özellik değil, doğrulama aracıdır.
@@ -68,7 +68,7 @@ Pazar araştırması boşluğu "orta" buldu: güç hesabı, etki büyüklüğü 
 - Yöntem kapsamı: ANOVA yalnız genel (omnibus) F testi; oran testi iki bağımsız oran; ki-kare bağımsızlık testi; çoklu regresyon genel R². Tek oran hipotez testi kapsam dışı, tek oran için Dilim 10'daki kesinlik hesabı vardır.
 - Etki dayanağı açık bir argümandır: `effect_basis` (Bölüm 7). Korkuluklar serbest metne bakmaz.
 - Kayıp payı (`dropout`) ve `deff` tüm planlarda geçerlidir. Alanlar Dilim 1'den itibaren plan nesnesindedir, varsayılanları `dropout = 0` ve `deff = 1`.
-- Tüm kullanıcı mesajları (metin, uyarı, hata, arayüz) Türkçe ve İngilizcedir. Dil altyapısı Dilim 1'de kurulur.
+- Tüm kullanıcı mesajları (metin, uyarı, hata) Türkçe ve İngilizcedir. Dil altyapısı Dilim 1'de kurulur.
 
 ## 6. Doğruluk referansları
 
@@ -98,15 +98,14 @@ p <- plan_study(
 )
 sensitivity(p, n = 50)
 write_methods(p, lang = "tr")
-run_app()   # Shiny arayüzü
 ```
 
 - `effect_basis` değerleri: `"prior_study"`, `"pilot"`, `"smallest_of_interest"`, `"convention"`, `"observed"`, `"unknown"` (varsayılan). Başka çalışmadan ya da pilottan gelen etki meşrudur, aynı çalışmanın verisinden gelen etki değildir.
 - `effect_source` isteğe bağlı serbest metindir, metne aynen yazılır.
-- Dil: `getOption()` ile paket düzeyinde ayarlanır, varsayılan `"en"`. `write_methods(lang = )` bunu ezer. Shiny kendi dil seçicisini kullanır.
+- Dil: `getOption()` ile paket düzeyinde ayarlanır, varsayılan `"en"`. `write_methods(lang = )` bunu ezer.
 - Türkçe metin şablonları ve mesajları kod içine değil `inst/` altındaki UTF-8 dosyalara konur. Böylece R kodu ASCII kalır.
 - Gerekli n'ye düzeltme sırası: analitik n (varsa sonlu evren düzeltmesi), sonra `× deff`, sonra `/ (1 - dropout)`. Yukarı yuvarlama yalnız en sonda bir kez yapılır. Örnek: N=1000, e=.05, p=.5, DEFF=1.5, kayıp %10 için 277,74, 416,6, 462,9 ve sonuç 463. Dilim 10'da bu sıra kaynakla doğrulanır.
-- Arayüz yalnızca planlama yapar, ham veri istemez.
+- Paket yalnızca planlama yapar, ham veri istemez.
 
 ### İlk korkuluklar
 
@@ -114,7 +113,7 @@ run_app()   # Shiny arayüzü
 |---|---|
 | `effect_basis = "unknown"` ya da `"convention"` | Uyarı ve metinde açık ifade |
 | `effect_basis = "observed"` (gözlenen güç) | Hata, `sensitivity()` önerisi |
-| `plan_precision()` çıktısı (Cochran) `sensitivity()` ya da hipotez testi metnine verilir | Sınıfından tanınır, hata ve `plan_study()` önerisi |
+| `plan_precision()` çıktısı (Cochran) `sensitivity()`'e ya da bir hipotez testi işlevine verilir | Sınıfından tanınır, hata ve `plan_study()` önerisi. `write_methods()` hata vermez: kesinlik planı için kendi yöntem paragrafını yazar (kullanıcı kararı, 2026-11-14) |
 
 İlk iki satır Dilim 3'te, Cochran satırı Dilim 10'da yapılır.
 
@@ -131,11 +130,13 @@ Her dilim tek git dalıdır ve yaklaşık 150 satır kod hedefler. Aşarsa böl�
 6. İki oran.
 7. Korelasyon.
 8. Ki-kare.
-9. Çoklu regresyon.
+9. Çoklu regresyon (genel R² F testi).
+9b. Kısmi/artımsal R² (ΔR²) ve tek yordayıcı testi. `pwrss` kısmi testte `pwr` ile uyuşmaz (54,59 ve 56,52); yöntem farkı ve çelişki kuralı bu dilimde ele alınır.
+9c. Rastgele yordayıcı bilgi satırı (DMAR, `Suggests`).
 10. Örnekleme modülü: Cochran, sonlu evren düzeltmesi, kayıp payı, DEFF.
 11. Simülasyonla doğrulama fonksiyonları.
-12. Yerel Shiny arayüzü (`run_app()`).
-13. `pkgdown` sitesi, GitHub Actions, CRAN hazırlığı.
+12. (Kaldırıldı, 2026-11-14: Shiny arayüzü yapılmayacak. Numara korunur, böylece 13 değişmez.)
+13. `pkgdown` sitesi, GitHub Actions, CRAN hazırlığı. Yayından önce tüm testler için simülasyonla güç testi yapılır (ör. regresyonda rastgele yordayıcılarla ampirik güç).
 
 Ki-kare ve çoklu regresyon için `pwrss` desteği Dilim 0'da doğrulanır. Destek yoksa kapsam kullanıcıyla yeniden konuşulur.
 
@@ -156,7 +157,7 @@ Kural: kullanıcının açıklayamadığı kod `main`'e girmez.
 ## 10. Kısıtlar ve ortam
 
 - R 4.6.1, `D:\R-4.6.1\bin\Rscript.exe`. `PATH`'te değil, komutlar tam yol kullanmalıdır.
-- Eksik paketler: `devtools`, `usethis`, `testthat`, `pkgdown`, `shiny`, `pwrss`. Kurulu: `roxygen2`, `pkgbuild`.
+- Eksik paketler: `devtools`, `usethis`, `testthat`, `pkgdown`, `pwrss` (`shiny` 2026-11-14'te kapsamdan çıktı). Kurulu: `roxygen2`, `pkgbuild`.
 - Rtools `PATH`'te bulunamadı. Saf R paketi için gerekmemesi beklenir, Dilim 0'da doğrulanır.
 - Depo yolu boşluk ve `ş` içerir: `D:\r paketi geliştirme`. Dilim 0'da `R CMD build` ve `R CMD check` burada denenir. Sorun çıkarsa kullanıcıya sorulup depo ASCII bir yola taşınır.
 - Kullanıcı ders düzeyinde R biliyor. Anlatımlar buna göre yazılır.

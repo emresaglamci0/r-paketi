@@ -20,8 +20,8 @@ powershell -ExecutionPolicy Bypass -File dev\check.ps1
 - Fonksiyon adları ve kod yorumları İngilizce. R kodu ASCII kalır.
 - Türkçe ve İngilizce metin, uyarı ve hatalar `inst/` altındaki UTF-8 dosyalarda durur. Kod içine Türkçe metin yazma.
 - Hesap motoru yazma. `pwrss` çağır ve çıktısını testle koru.
-- Hem R fonksiyonları hem Shiny aynı çekirdeği kullanır. Hesabı Shiny içine yazma.
-- Arayüz yalnız yerelde çalışır ve ham veri istemez.
+- Shiny ya da başka grafik arayüz yok. Paket R konsolunda ve RStudio'da fonksiyonlarla kullanılır.
+- Paket ham veri istemez.
 
 ## Doğruluk
 
