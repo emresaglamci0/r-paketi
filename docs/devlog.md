@@ -57,4 +57,11 @@
 
 ## Dilim 9b: kısmi regresyon (ΔR²) testi (2026-11-14)
 
-- **Ajan doğru yaptı:** `pwrss::power.f.reg` için ΔR²yi
+- **Ajan doğru yaptı:** `pwrss::power.f.reg` için ΔR²'yi kısmi R²'ye çevirdi; değerler ölçeklenmiş `pwr` ve `power.t.reg` ile uyuştu, düz `pwr` farklı yöntem olarak referans dışı kaldı. Altın dosya kırılınca dosyaya dokunmadan durdu ve yer tutucu çözümünü önerdi.
+- **Ajan kaçırdı:** Test ajanı "çözülemeyen tasarım" girdisini çalıştırmadan tahmin etti; girdi gerçekte n ≈ 7.8e8 veriyordu, Opus değiştirdi. Kod ajanının önerdiği altın yer tutucusu fazla genişti; genel inceleme buldu, yalnız `effect_type` mesajına daraltıldı. İnceleme ayrıca yardım sayfasında ΔR², kısmi R² ve tam model R² karışıklığını ve `fmt_plain`/`fmt_num` tutarsızlığını buldu; ikisi düzeltildi. Kullanıcı 8. adımı yine atladı.
+
+## Düzeltme: kaynakta iç içe parantez (2026-11-14)
+
+- **Ajan doğru yaptı:** Kaynağın tek yoldan (`write_methods`) geçtiğini doğruladı, düzeltmeyi tek satırda yaptı (APA: iç parantez köşeli), önce başarısız olan ve beş test türünü iki dilde deneyen bir test yazdı.
+- **Ajan kaçırdı:** Kritik bir şey kaçırmadı. Sorun Dilim 4, 9 ve 9b incelemelerinde parça parça bulunmuştu; kök neden ancak 9b genel incelemesinde görüldü.
+- **Opus kaçırdı:** Devlog girdilerini iki kez kabuk tırnağı içinde yazdı; Türkçe kesme işaretleri tırnağı kapattı ve metin bozuldu. Devlog artık düzenleme aracıyla yazılıyor.
