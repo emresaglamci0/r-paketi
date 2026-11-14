@@ -7,7 +7,7 @@
 write_methods(plan, lang = NULL)
 }
 \arguments{
-\item{plan}{A \code{plansize_plan} from \code{\link[=plan_study]{plan_study()}}.}
+\item{plan}{A \code{plansize_plan} from \code{\link[=plan_study]{plan_study()}} or a \code{plansize_precision} from \code{\link[=plan_precision]{plan_precision()}}.}
 
 \item{lang}{\code{"en"} or \code{"tr"}. Defaults to the \code{plansize.lang} option, then \code{"en"}.}
 }

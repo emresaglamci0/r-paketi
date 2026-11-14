@@ -112,8 +112,7 @@ plan_study <- function(test = "t_independent", effect, r = NULL, k = NULL,
   }
   check_probability(alpha, "alpha")
   check_power(power, alpha)
-  if (!is_num1(dropout) || dropout < 0 || dropout >= 1) fail("err_dropout", "dropout")
-  if (!is_num1(deff) || deff < 1) fail("err_deff", "deff")
+  check_adjust(dropout, deff)
 
   groups <- spec$groups(prep$extra)
   n_analytic <- spec$n(c(prep$extra, list(effect_test = prep$effect_test, alpha = alpha,

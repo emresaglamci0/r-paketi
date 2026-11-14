@@ -48,8 +48,19 @@ warn_basis <- function(basis) {
   invisible(basis)
 }
 
+# Dropout and design effect checks shared by the plan functions.
+check_adjust <- function(dropout, deff) {
+  if (!is_num1(dropout) || dropout < 0 || dropout >= 1) fail("err_dropout", "dropout")
+  if (!is_num1(deff) || deff < 1) fail("err_deff", "deff")
+  invisible(NULL)
+}
+
+# Round up with a floating-point margin (400 * 1.1 is 440.00000000000006).
+round_up <- function(x) ceiling(x - 1e-9)
+
 # Guards against hand-edited plans before sensitivity().
 check_plan <- function(x) {
+  if (inherits(x, "plansize_precision")) fail("err_precision_plan")
   ok_basis <- c("unknown", "prior_study", "pilot", "smallest_of_interest", "convention")
   ok <- inherits(x, "plansize_plan") &&
     is.character(x$test) && length(x$test) == 1L && x$test %in% names(test_spec) &&
@@ -62,5 +73,15 @@ check_plan <- function(x) {
   if (ok && !spec$directional) ok <- isTRUE(is.na(x$alternative))
   if (ok) ok <- spec$check(x)
   if (!ok) fail("err_plan", "plan")
+  invisible(x)
+}
+
+# Guards against hand-edited precision plans before print and write_methods.
+check_precision_plan <- function(x) {
+  num <- c("p", "e", "conf_level", "n0", "n_analytic", "n_required", "dropout", "deff")
+  ok <- inherits(x, "plansize_precision") && is.list(x) &&
+    all(vapply(num, function(k) is_num1(x[[k]]), TRUE)) &&
+    (is.null(x$N) || is_num1(x$N)) && identical(x$method, "cochran_wald")
+  if (!ok) fail("err_precision_obj", "plan")
   invisible(x)
 }

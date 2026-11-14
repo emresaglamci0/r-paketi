@@ -16,12 +16,13 @@ fmt_prob <- function(x) sub("^(-?)0[.]", "\\1.", fmt_num(x))
 #'
 #' The paragraph is valid only for a plan made before data collection.
 #'
-#' @param plan A `plansize_plan` from [plan_study()].
+#' @param plan A `plansize_plan` from [plan_study()] or a `plansize_precision` from [plan_precision()].
 #' @param lang `"en"` or `"tr"`. Defaults to the `plansize.lang` option, then `"en"`.
 #' @return A single string of class `plansize_methods`.
 #' @export
 write_methods <- function(plan, lang = NULL) {
   check_required(missing(plan), "plan")
+  if (inherits(plan, "plansize_precision")) return(methods_precision(plan, resolve_lang(lang)))
   check_plan(plan)
   lang <- resolve_lang(lang)
   has_src <- !is.null(plan$effect_source) && nzchar(trimws(plan$effect_source))

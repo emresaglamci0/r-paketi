@@ -188,3 +188,24 @@ m_adjust_dropout_reg_partial,"Allowing for an expected dropout rate of %s%%, the
 m_adjust_deff_reg_partial,"Allowing for a design effect of %s, the recruitment target was %s participants.",Tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
 m_adjust_both_reg_partial,"Allowing for an expected dropout rate of %s%% and a design effect of %s, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s ve tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
 plan_random_n,"Participants if the predictors are random (includes dropout and design effect): %s. Predictors that are measured rather than set by the design (most observational studies) are random; recruiting this number keeps the target power. The methods text reports the fixed-predictor plan above.","Yordayıcılar rastgeleyse katılımcı sayısı (kayıp ve tasarım etkisi dahil): %s. Tasarımla belirlenmeyip ölçülen yordayıcılar (çoğu gözlemsel çalışma) rastgeledir; bu sayıda katılımcı almak hedef gücü korur. Yöntem metni yukarıdaki sabit yordayıcı planını yazar."
+err_precision_plan,"A precision plan has no hypothesis test, so it cannot be used here. Use plan_study() for a power analysis.","Kesinlik planında hipotez testi yoktur, bu yüzden burada kullanılamaz. Güç analizi için plan_study() kullanın."
+err_precision_e,"Argument 'e' must be positive and smaller than min(p, 1 - p).","Argüman 'e' pozitif ve min(p, 1 - p) değerinden küçük olmalı."
+err_precision_N,Argument '%s' must be NULL or a whole number of at least 2.,Argüman '%s' NULL ya da en az 2 olan bir tam sayı olmalı.
+err_precision_big,"The required sample size is too large to represent (over about 2.1 billion). Check e, N, deff and dropout.","Gereken örneklem büyüklüğü gösterilemeyecek kadar büyük (yaklaşık 2,1 milyarı aşıyor). e, N, deff ve dropout değerlerini kontrol edin."
+warn_precision_N,"The plan needs %s participants, more than the population size N = %s.","Plan %s katılımcı gerektiriyor, bu evren büyüklüğünden (N = %s) fazla."
+prec_title,Precision-based sample size plan,Kesinliğe dayalı örneklem büyüklüğü planı
+prec_n,Required sample size: %s,Gereken örneklem büyüklüğü: %s
+prec_p,Expected proportion: %s,Beklenen oran: %s
+prec_e,Margin of error (half-width): %s,Hata payı (yarı genişlik): %s
+prec_conf,Confidence level: %s%%,Güven düzeyi: %%%s
+prec_N,Population size: %s,Evren büyüklüğü: %s
+prec_method,Calculation method: %s,Hesaplama yöntemi: %s
+m_precision_intro,"The sample size for estimating one proportion was determined in R with the plansize package (version %s), using Cochran's normal-approximation formula.","Tek bir oranı kestirmek için gereken örneklem büyüklüğü, R ortamında plansize (sürüm %s) paketiyle Cochran'ın normal yaklaşım formülü kullanılarak belirlenmiştir."
+m_precision_fpc,"A finite population correction for a population of %s was applied by dividing n0 by 1 + (n0 - 1) / N, giving %s participants.","Evren büyüklüğü %s için sonlu evren düzeltmesi n0 değerinin 1 + (n0 - 1) / N ile bölünmesiyle uygulanmış ve %s katılımcı bulunmuştur."
+m_precision_adjust_dropout,"Allowing for an expected dropout rate of %s%%, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_precision_adjust_deff,"Allowing for a design effect of %s, the recruitment target was %s participants.",Tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_precision_adjust_both,"Allowing for an expected dropout rate of %s%% and a design effect of %s, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s ve tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_precision_result,"The uncorrected sample size (n0) for an expected proportion of %s, a margin of error of %s and a confidence level of %s%% is %s participants.","Beklenen oran %s, hata payı %s ve güven düzeyi %%%s için düzeltilmemiş örneklem büyüklüğü (n0) %s katılımcıdır."
+m_precision_final,The required sample size is %s participants.,Gereken örneklem büyüklüğü %s katılımcıdır.
+val_cochran_wald,"Cochran, normal approximation (Wald)","Cochran, normal yaklaşım (Wald)"
+err_precision_obj,Argument '%s' must be a plansize_precision created by plan_precision().,Argüman '%s' plan_precision() ile oluşturulmuş bir plansize_precision olmalı.

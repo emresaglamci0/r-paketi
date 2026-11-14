@@ -3,7 +3,7 @@
 #' For each combination of recruited per-group n and power, returns the
 #' smallest standardized effect detectable after dropout and design effect.
 #'
-#' @param plan A `plansize_plan` from [plan_study()].
+#' @param plan A `plansize_plan` from [plan_study()]. A precision plan from [plan_precision()] is an error (it has no hypothesis test).
 #' @param n Recruited per-group sample sizes (participants for "t_paired", "cor_pearson" and "chisq_indep"). Defaults to `plan$n_per_group`.
 #' @param power Target powers, each from 0.01 to 0.99 and greater than the plan's alpha.
 #' @details `n_effective` is `floor(n * (1 - dropout) / deff)`, rounded down, so the

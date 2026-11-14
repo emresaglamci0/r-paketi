@@ -7,7 +7,7 @@
 sensitivity(plan, n = NULL, power = c(0.8, 0.9, 0.95))
 }
 \arguments{
-\item{plan}{A \code{plansize_plan} from \code{\link[=plan_study]{plan_study()}}.}
+\item{plan}{A \code{plansize_plan} from \code{\link[=plan_study]{plan_study()}}. A precision plan from \code{\link[=plan_precision]{plan_precision()}} is an error (it has no hypothesis test).}
 
 \item{n}{Recruited per-group sample sizes (participants for "t_paired", "cor_pearson" and "chisq_indep"). Defaults to \code{plan$n_per_group}.}
 
