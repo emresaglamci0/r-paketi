@@ -99,7 +99,7 @@ overstate n whenever the covariates explain variance.}
 "convention" give a warning of class \code{plansize_basis_warning}; "observed" is an
 error, use \code{\link[=sensitivity]{sensitivity()}} instead. The chosen basis is stated in the methods text.}
 
-\item{effect_source}{Optional free-text source of the effect.}
+\item{effect_source}{Optional free-text source of the effect. In the methods text, parentheses inside it are shown as square brackets.}
 
 \item{alpha}{Significance level, in (0, 1).}
 

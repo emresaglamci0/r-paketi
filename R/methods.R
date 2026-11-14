@@ -25,7 +25,8 @@ write_methods <- function(plan, lang = NULL) {
   check_plan(plan)
   lang <- resolve_lang(lang)
   has_src <- !is.null(plan$effect_source) && nzchar(trimws(plan$effect_source))
-  src <- if (has_src) paste0(" (", plan$effect_source, ")") else ""
+  # APA: parentheses inside parentheses become square brackets (method text only).
+  src <- if (has_src) paste0(" (", chartr("()", "[]", plan$effect_source), ")") else ""
   n_req <- as.integer(ceiling(plan$n_analytic))
   spec <- test_spec[[plan$test]]
   # Text keys are tried as <base>_<variant>, then <base>.

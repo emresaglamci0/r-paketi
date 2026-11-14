@@ -66,7 +66,7 @@
 #'   "pilot", "smallest_of_interest", "convention" or "observed". "unknown" and
 #'   "convention" give a warning of class `plansize_basis_warning`; "observed" is an
 #'   error, use [sensitivity()] instead. The chosen basis is stated in the methods text.
-#' @param effect_source Optional free-text source of the effect.
+#' @param effect_source Optional free-text source of the effect. In the methods text, parentheses inside it are shown as square brackets.
 #' @param alpha Significance level, in (0, 1).
 #' @param power Target power, from 0.01 to 0.99 and greater than alpha.
 #' @param alternative `"two.sided"` or `"one.sided"`.
