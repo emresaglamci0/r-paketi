@@ -85,3 +85,18 @@ check_precision_plan <- function(x) {
   if (!ok) fail("err_precision_obj", "plan")
   invisible(x)
 }
+
+# Guards against hand-edited simulation results before print.
+check_simulation <- function(x) {
+  num <- c("power_sim", "mc_se", "power_analytic", "diff", "target")
+  st <- x[["status"]]
+  ok <- inherits(x, "plansize_simulation") && is.list(x) && is.character(x$test) && length(x$test) == 1L &&
+    x$test %in% names(Filter(function(s) !is.null(s$simulate), test_spec)) &&
+    all(vapply(num, function(k) is_num1(x[[k]]), TRUE)) && is.numeric(x$ci) && length(x$ci) == 2L &&
+    is_num1(x$n) && x$n >= 1 && x$n == round(x$n) && is_num1(x$reps) && x$reps >= 100 && all(is.finite(x$ci)) &&
+    is.character(st) && length(st) == 1L && (is.na(st) || st %in% c("pass", "warn", "fail")) &&
+    identical(is.na(st), x$reps < 10000) && identical(x$pass, if (is.na(st)) NA else st == "pass") &&
+    is.character(x$notes) && all(x$notes %in% c("adjust", "n", "reps"))
+  if (!ok) fail("err_sim_obj", "x")
+  invisible(x)
+}

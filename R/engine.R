@@ -102,3 +102,26 @@ engine_mde_reg <- function(n, k, alpha, power, tested = k) {
     power = power, alpha = alpha, ceil.n = FALSE, verbose = 0))
   r$r.squared.change
 }
+
+# Power at a given n (group size; total n for paired), used only to compare with simulation.
+engine_power_t <- function(n, d, alpha, alternative, design) {
+  pwrss::power.t.student(d = d, n2 = n, alpha = alpha, alternative = alternative,
+    design = design, verbose = 0)$power
+}
+
+engine_power_anova <- function(n, k, f, alpha) {
+  pwrss::power.f.ancova(eta.squared = f^2 / (1 + f^2), factor.levels = k, n.total = n * k,
+    alpha = alpha, verbose = 0)$power
+}
+
+# Same pooled-SE z test as engine_n_props.
+# pwrss gives asymptotic pooled-z power; exact binomial power is .8095 here, the gap is discreteness
+engine_power_props <- function(n, p1, p2, alpha, alternative) {
+  pwrss::power.z.twoprops(prob1 = p1, prob2 = p2, n2 = n, alpha = alpha, alternative = alternative,
+    std.error = "pooled", verbose = 0)$power
+}
+
+engine_power_cor <- function(n, rho, alpha, alternative) {
+  pwrss::power.z.onecor(rho = abs(rho), req.sign = "+", n = n, alpha = alpha,
+    alternative = alternative, verbose = 0)$power
+}

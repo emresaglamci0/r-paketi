@@ -19,6 +19,9 @@
 #   effect_sentence(plan, src, lang)  effect sentence of the methods text
 #   variant(plan)                msg_for() suffixes, most specific first
 #   check(plan)                  test-specific validity of a plan, TRUE or FALSE
+#   power(n, plan)               analytic power at n (n per group, or total for one-sample tests)
+#   simulate(n, plan)            function() that draws one study and returns its p value; with
+#                                power(), only the five tests of simulate_power() have them
 
 # Shared by the two t tests: k and effect_type belong to the ANOVA only.
 reject_anova_args <- function(a, given) {
@@ -53,6 +56,11 @@ t_extra <- function(a) {
   list(effect_type = NA_character_, k = NA_integer_, r = a[["r"]])
 }
 
+# Direction of a one-sided simulated test: "greater" when the planned effect `sign` is positive.
+sim_alt <- function(plan, sign) {
+  if (plan$alternative == "one.sided") (if (sign > 0) "greater" else "less") else "two.sided"
+}
+
 variant_plain <- function(plan) plan$test
 
 variant_reg <- function(plan) {
@@ -76,6 +84,11 @@ test_spec <- list(
       list(effect = a[["effect"]], effect_test = a[["effect"]], extra = t_extra(a))
     },
     n = function(p) engine_n(p$effect_test, p$alpha, p$power, p$alternative, "independent")$n,
+    power = function(n, plan) engine_power_t(n, plan$effect_test, plan$alpha, plan$alternative, "independent"),
+    simulate = function(n, plan) {
+      d <- plan$effect_test; alt <- sim_alt(plan, 1)
+      function() stats::t.test(stats::rnorm(n, d), stats::rnorm(n), var.equal = TRUE, alternative = alt)$p.value
+    },
     mde = function(n, plan, power) {
       engine_mde(n, plan$alpha, power, plan$alternative, "independent")
     },
@@ -100,6 +113,16 @@ test_spec <- list(
       list(effect = a[["effect"]], effect_test = a[["effect"]] / sqrt(2 * (1 - r)), extra = t_extra(a))
     },
     n = function(p) engine_n(p$effect_test, p$alpha, p$power, p$alternative, "paired")$n,
+    power = function(n, plan) engine_power_t(n, plan$effect_test, plan$alpha, plan$alternative, "paired"),
+    # d is the mean change over the SD of one measurement; y - x then has SD sqrt(2 * (1 - r)).
+    simulate = function(n, plan) {
+      d <- plan$effect; r <- plan$r; alt <- sim_alt(plan, 1)
+      function() {
+        x <- stats::rnorm(n)
+        y <- d + r * x + sqrt(1 - r^2) * stats::rnorm(n)
+        stats::t.test(y, x, paired = TRUE, alternative = alt)$p.value
+      }
+    },
     # Paired engine returns dz; report d under the plan's r.
     mde = function(n, plan, power) {
       engine_mde(n, plan$alpha, power, plan$alternative, "paired") * sqrt(2 * (1 - plan$r))
@@ -141,6 +164,13 @@ test_spec <- list(
            extra = list(effect_type = effect_type, k = k, r = a[["r"]]))
     },
     n = function(p) engine_n(p$effect_test, p$alpha, p$power, NULL, "anova", p[["k"]])$n,
+    power = function(n, plan) engine_power_anova(n, plan$k, plan$effect_test, plan$alpha),
+    # Equally spaced group means scaled so that their SD (denominator k) equals f.
+    simulate = function(n, plan) {
+      k <- plan$k; mu <- seq(-1, 1, length.out = k)
+      mu <- rep(mu / sqrt(mean(mu^2)) * plan$effect_test, each = n); g <- gl(k, n)
+      function() stats::oneway.test(mu + stats::rnorm(k * n) ~ g, var.equal = TRUE)$p.value
+    },
     # ANOVA engine returns f; report in the unit the user entered.
     mde = function(n, plan, power) {
       f <- engine_mde(n, plan$alpha, power, NULL, "anova", plan[["k"]])
@@ -184,6 +214,12 @@ test_spec <- list(
            extra = list(effect_type = NA_character_, k = NA_integer_, p1 = p1, p2 = p2))
     },
     n = function(p) engine_n_props(p$p1, p$p2, p$alpha, p$power, p$alternative),
+    power = function(n, plan) engine_power_props(n, plan$p1, plan$p2, plan$alpha, plan$alternative),
+    simulate = function(n, plan) {
+      p1 <- plan$p1; p2 <- plan$p2; alt <- sim_alt(plan, p1 - p2)
+      function() stats::prop.test(c(stats::rbinom(1, n, p1), stats::rbinom(1, n, p2)), c(n, n),
+        correct = FALSE, alternative = alt)$p.value
+    },
     # Detectable p1 with p2 fixed, searched in the direction of the planned difference.
     mde = function(n, plan, power) {
       engine_mde_props(n, plan$p2, plan$p1 > plan$p2, plan$alpha, power, plan$alternative)
@@ -216,6 +252,14 @@ test_spec <- list(
            extra = list(effect_type = NA_character_, k = NA_integer_, r = NULL))
     },
     n = function(p) engine_n_cor(p$effect_test, p$alpha, p$power, p$alternative),
+    power = function(n, plan) engine_power_cor(n, plan$effect, plan$alpha, plan$alternative),
+    simulate = function(n, plan) {
+      rho <- plan$effect; alt <- sim_alt(plan, rho)
+      function() {
+        x <- stats::rnorm(n)
+        stats::cor.test(x, rho * x + sqrt(1 - rho^2) * stats::rnorm(n), alternative = alt)$p.value
+      }
+    },
     # Detectable r keeps the sign of the planned correlation.
     mde = function(n, plan, power) {
       engine_mde_cor(n, sign(plan$effect), plan$alpha, power, plan$alternative)
