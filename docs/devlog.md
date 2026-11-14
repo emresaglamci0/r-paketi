@@ -54,3 +54,7 @@
 
 - **Ajan doğru yaptı:** `pwrss::power.f.reg` ile R² ya da f²'den toplam n hesapladı; `pwr` ile 64 bileşimde birebir uyuştu. `effect_type` imza varsayılanını değiştirmeden regresyonda zorunlu kıldı, `predictors` argümanını diğer tüm testlerde reddetti. Testi değiştirmek yerine altın dosya çelişkisinde durup sordu.
 - **Ajan kaçırdı:** Plan iki hata taşıyordu, kontrol ajanı buldu: `effect_type` varsayılanını genişletmek ANOVA'yı bozacaktı, `m_intro` regresyon adıyla çift parantez üretecekti. Plandaki "R² .995 infeasible" gerekçesi yanlıştı; araştırma ajanı gerçek uç girdiyi buldu (R² .99, k 1). Altın dosya kırılmasını benim plan düzeltmem doğurdu, plan bunu öngörmedi; kullanıcı onayıyla yalnız iki girdi güncellendi. Genel inceleme f² + kaynak yolunda yine çift parantez ve yardım sayfasında f²/R² eşik karışıklığını buldu; ikisi düzeltildi. Kullanıcı 8. adımı bu dilim için bilerek atladı.
+
+## Dilim 9b: kısmi regresyon (ΔR²) testi (2026-11-14)
+
+- **Ajan doğru yaptı:** `pwrss::power.f.reg` için ΔR²yi
