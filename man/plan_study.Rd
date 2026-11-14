@@ -14,6 +14,8 @@ plan_study(
   rows = NULL,
   cols = NULL,
   predictors = NULL,
+  tested = NULL,
+  r2_covariates = NULL,
   effect_type = c("f", "eta2"),
   effect_basis = c("unknown", "prior_study", "pilot", "smallest_of_interest",
     "convention", "observed"),
@@ -26,13 +28,13 @@ plan_study(
 )
 }
 \arguments{
-\item{test}{\code{"t_independent"} (default), \code{"t_paired"}, \code{"anova_oneway"}, \code{"prop_two"}, \code{"cor_pearson"}, \code{"chisq_indep"} or \code{"reg_overall"} (overall F test of a multiple regression).}
+\item{test}{\code{"t_independent"} (default), \code{"t_paired"}, \code{"anova_oneway"}, \code{"prop_two"}, \code{"cor_pearson"}, \code{"chisq_indep"}, \code{"reg_overall"} (overall F test of a multiple regression) or \code{"reg_partial"} (F test of the R squared change from a subset of the predictors).}
 
 \item{effect}{Effect size, a single number: positive for the t tests and ANOVA; not used with \code{"prop_two"};
 for \code{"cor_pearson"} the expected Pearson r, between -1 and 1 and not 0 (its sign sets the
 direction of a one-sided test); for \code{"chisq_indep"} Cohen's w, above 0 and at most 1 (the
 test has no direction, so \code{alternative} must not be set). Cohen's d for the t tests; for
-"anova_oneway", Cohen's f or eta squared as set by effect_type. For "reg_overall", R squared or Cohen f squared as set by effect_type. For
+"anova_oneway", Cohen's f or eta squared as set by effect_type. For "reg_overall", R squared or Cohen f squared as set by effect_type; for "reg_partial", the R squared change or the partial Cohen f squared of the tested predictors, as set by effect_type. For
 \code{"t_paired"}, d is the mean change divided by the SD of one measurement (pre and
 post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.
 For "chisq_indep", w is not Cramer's V: for tables larger than 2 x 2, w = V * sqrt(min(rows, cols) - 1). w above 1 is possible when rows and cols are both at least 3, but pwrss does not support it.}
@@ -52,8 +54,20 @@ p1 - p2, so \code{effect} must not be given); an error for the other tests.}
 from 2 to 1000. Required for \code{"chisq_indep"} (df = (rows - 1) * (cols - 1)); an error for the other tests.}
 
 \item{predictors}{Number of predictors in the regression model, a single whole number from
-1 to 1000. Required for \code{"reg_overall"}; an error for the other tests. Count a
+1 to 1000. Required for \code{"reg_overall"} and \code{"reg_partial"} (for \code{"reg_partial"} the total,
+tested predictors included); an error for the other tests. Count a
 categorical predictor by its dummy variables (a 4-level factor is 3 predictors).}
+
+\item{tested}{Only for \code{"reg_partial"}: number of predictors tested together, a whole number
+from 1 to \code{predictors} - 1 (to test all predictors use \code{"reg_overall"}). With \code{tested = 1}
+the test equals the two-sided t test of one predictor. An error for the other tests.}
+
+\item{r2_covariates}{Only for \code{"reg_partial"} with \code{effect_type = "r2_change"}: R squared of
+the model without the tested predictors, from 0 up to but not including 1, with
+\code{effect} + \code{r2_covariates} at most 0.99. An error for the other tests and for \code{"f2"}.
+It is not the R squared of the full model: with full-model R squared .30 and an R squared
+change of .10, enter \verb{effect = 0.10, r2_covariates = 0.20}. Do not enter the partial R
+squared (.10 / (1 - .20) = .125) as \code{effect}; with \code{"r2_change"} that gives a smaller n.}
 
 \item{effect_type}{For \code{"anova_oneway"}: \code{"f"} (default) or \code{"eta2"}, whether \code{effect}
 is Cohen's f or eta squared (converted by f = sqrt(eta2 / (1 - eta2))).
@@ -68,7 +82,17 @@ Cohen's f squared benchmarks .02, .15 and .35 (small, medium, large) are not R s
 values: as R squared they are .02, .13 and .26. Entering .15 as \code{"r2"} instead of \code{"f2"}
 gives a different plan without an error, so check which measure your source reports.
 Do not enter an adjusted R squared (papers label it "adjusted" or "R2adj"); use the
-plain R squared. An error for the other tests.}
+plain R squared. An error for the other tests.
+For \code{"reg_partial"}: required, \code{"r2_change"} or \code{"f2"} (exact match, no default).
+\code{"r2_change"} is the increase in R squared (Delta R squared) when the tested predictors
+are added to the model with the other predictors (the covariates); \code{r2_covariates}, the
+R squared of the model without the tested predictors, is then required. \code{"f2"} is Cohen's
+f squared of the tested set = Delta R squared / (1 - R squared of the full model);
+\code{r2_covariates} must not be given because f squared already accounts for the covariates.
+pwrss is given the partial R squared = Delta R squared / (1 - \code{r2_covariates}) (equal to
+f2 / (1 + f2)), because the argument pwrss calls \code{r.squared.change} is used as f2 =
+r.squared.change / (1 - r.squared.change); entering Delta R squared directly would
+overstate n whenever the covariates explain variance.}
 
 \item{effect_basis}{Where the effect came from: "unknown" (default), "prior_study",
 "pilot", "smallest_of_interest", "convention" or "observed". "unknown" and
@@ -104,5 +128,7 @@ For "cor_pearson", n uses the Fisher z approximation without the bias correction
 
 For "chisq_indep", n is for Pearson's chi-square test without continuity correction; in R use chisq.test(x, correct = FALSE) for 2 x 2 tables, as the default Yates correction lowers power.
 
-For "reg_overall", n is the total for the overall F test of a multiple regression (H0: R squared = 0), with \code{groups} 1. The F model treats the predictors as fixed; with random predictors the power is slightly lower (about 0.78 instead of 0.80 in a simulation with R2 = 0.13 and 3 predictors). Tests of single predictors and of R squared change are not covered.
+For "reg_overall", n is the total for the overall F test of a multiple regression (H0: R squared = 0), with \code{groups} 1. The F model treats the predictors as fixed; with random predictors the power is slightly lower (about 0.78 instead of 0.80 in a simulation with R2 = 0.13 and 3 predictors). Tests of single predictors are covered only through \code{"reg_partial"} with \code{tested = 1}.
+
+For "reg_partial", n is the total for the F test of the R squared change of \code{tested} of \code{predictors} predictors (H0: Delta R squared = 0), with \code{groups} 1. pwrss uses the noncentrality f squared * n (fixed predictors, as in G*Power's "R2 increase, fixed model"); this was checked against a fixed-design simulation. pwr::pwr.f2.test uses Cohen's f squared * (u + v + 1) instead, a different method that gives 0 to \code{predictors} - \code{tested} more participants; do not treat it as a reference for this test. The F model treats the predictors as fixed; with random predictors the power is lower (about 0.77 instead of 0.80 in a simulation, and lower still with a small n and a large R squared).
 }

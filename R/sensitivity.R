@@ -15,6 +15,7 @@
 #'   For "prop_two" `mde` is the detectable p1 with p2 fixed, in the direction of the planned difference.
 #'   For "cor_pearson" mde is the detectable r with the sign of the planned correlation.
 #'   For "chisq_indep" mde is the detectable Cohen's w.
+#'   For "reg_partial" mde is in the plan's `effect_type` (R squared change or f squared of the tested predictors); the unit is kept in `attr(, "effect_type")`.
 #' @export
 sensitivity <- function(plan, n = NULL, power = c(0.80, 0.90, 0.95)) {
   check_required(missing(plan), "plan")

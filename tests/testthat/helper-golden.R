@@ -74,4 +74,9 @@ golden_build <- function() {
 
 # Replace the list of valid tests in err_choice messages for 'test' (en and tr). Other messages
 # stay untouched.
-golden_strip_tests <- function(x) sub("('test' [^:]*: )[^.]*", "\\1<TESTS>", x)
+golden_strip_tests <- function(x) {
+  x <- sub("('test' [^:]*: )[^.]*", "\\1<TESTS>", x)
+  # The effect_type list grows with each regression test; other "only with" texts stay compared.
+  x <- sub("('effect_type' is used only with test = )[^.]*", "\\1<TESTS>", x)
+  sub("('effect_type' yaln\\S* test = )\".*?\"( ile kullan)", "\\1<TESTS>\\2", x, perl = TRUE)
+}

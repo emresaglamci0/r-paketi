@@ -21,15 +21,21 @@
 
 # Shared by the two t tests: k and effect_type belong to the ANOVA only.
 reject_anova_args <- function(a, given) {
+  reject_partial_args(a)
   if (!is.null(a[["k"]])) fail("err_k_unused")
   if ("effect_type" %in% given) fail("err_effect_type_unused")
   reject_predictors(a)
   reject_table_args(given)
 }
 
-# predictors belongs to reg_overall only.
+# predictors belongs to reg_overall and reg_partial only.
 reject_predictors <- function(a) {
   if (!is.null(a[["predictors"]])) fail("err_predictors_unused")
+}
+
+# tested and r2_covariates belong to reg_partial only.
+reject_partial_args <- function(a) {
+  if (!is.null(a[["tested"]]) || !is.null(a[["r2_covariates"]])) fail("err_partial_unused")
 }
 
 # rows and cols belong to chisq_indep only.
@@ -112,6 +118,7 @@ test_spec <- list(
     directional = FALSE, min_n = 2, method = "f_oneway_anova",
     groups = function(a) a[["k"]],
     prepare = function(a, given) {
+      reject_partial_args(a)
       check_required(!"effect" %in% given, "effect")
       reject_p_args(a)
       reject_predictors(a)
@@ -232,6 +239,7 @@ test_spec <- list(
     directional = FALSE, min_n = 2, method = "chisq_indep_w",
     groups = function(a) 1L,
     prepare = function(a, given) {
+      reject_partial_args(a)
       check_required(!"effect" %in% given, "effect")
       effect <- a[["effect"]]
       if (!is_num1(effect) || effect <= 0 || effect > 1) fail("err_w")
@@ -271,6 +279,7 @@ test_spec <- list(
     directional = FALSE, min_n = 3, method = "f_reg_overall_r2",
     groups = function(a) 1L,
     prepare = function(a, given) {
+      reject_partial_args(a)
       check_required(!"effect" %in% given, "effect")
       # The signature default is for the ANOVA; here the choice must be explicit and exact.
       if (!"effect_type" %in% given || length(a$effect_type) != 1L) fail("err_effect_type_reg")
@@ -313,6 +322,72 @@ test_spec <- list(
         is_num1(plan$effect_test) && plan$effect_test > 0 && plan$effect_test <= 0.99 && is_num1(plan$effect) &&
         (if (plan$effect_type == "r2") identical(plan$effect, plan$effect_test)
          else isTRUE(all.equal(plan$effect_test, plan$effect / (1 + plan$effect)))) &&
+        identical(as.numeric(plan$groups), 1) && is.null(plan[["r"]]) && isTRUE(is.na(plan[["k"]]))
+    }
+  ),
+  # F test of the R-squared change from `tested` of `predictors` predictors. pwrss gets the
+  # partial R-squared (see ?plan_study), so effect_test is always the partial R-squared.
+  reg_partial = list(
+    directional = FALSE, min_n = 3, method = "f_reg_partial_r2",
+    groups = function(a) 1L,
+    prepare = function(a, given) {
+      check_required(!"effect" %in% given, "effect")
+      if (!"effect_type" %in% given || length(a$effect_type) != 1L) fail("err_effect_type_reg_partial")
+      effect_type <- check_choice(a$effect_type, c("r2_change", "f2"), "effect_type", exact = TRUE)
+      effect <- a[["effect"]]
+      cov <- a[["r2_covariates"]]
+      if (effect_type == "f2") {
+        if (!is_num1(effect) || effect <= 0 || effect > 99) fail("err_f2")
+      } else if (!is_num1(effect) || effect <= 0 || effect > 0.99) fail("err_r2_change")
+      k <- a[["predictors"]]
+      if (!is_num1(k) || k < 1 || k > 1000 || k != round(k)) fail("err_predictors")
+      u <- a[["tested"]]
+      if (!is_num1(u) || u < 1 || u != round(u) || u >= k) fail("err_tested")
+      if (effect_type == "f2") {
+        if (!is.null(cov)) fail("err_r2cov_unused")
+      } else if (!is_num1(cov) || cov < 0 || cov >= 1 || effect + cov > 0.99) fail("err_r2cov")
+      if ("alternative" %in% given) fail("err_alt_reg")
+      if (!is.null(a[["k"]])) fail("err_k_unused")
+      reject_table_args(given)
+      reject_p_args(a)
+      if (!is.null(a[["r"]])) fail("err_r_unused")
+      f2 <- effect_type == "f2"
+      list(effect = effect, effect_test = if (f2) effect / (1 + effect) else effect / (1 - cov),
+           extra = list(effect_type = effect_type, k = NA_integer_, r = NULL, predictors = as.integer(k),
+                        tested = as.integer(u), r2_covariates = if (f2) NA_real_ else cov))
+    },
+    n = function(p) engine_n_reg(p$effect_test, p$predictors, p$alpha, p$power, p$tested),
+    # Engine returns the partial R-squared; report in the unit the user entered.
+    mde = function(n, plan, power) {
+      r2 <- engine_mde_reg(n, plan$predictors, plan$alpha, power, plan$tested)
+      if (plan$effect_type == "f2") r2 / (1 - r2) else r2 * (1 - plan$r2_covariates)
+    },
+    effect_lines = function(plan) {
+      part <- plan$effect_test
+      c(msg_for("plan_effect", variant_reg(plan), fmt_num(plan$effect)),
+        if (plan$effect_type == "f2") msg("plan_tested_f2", plan$tested, plan$predictors)
+        else c(msg("plan_tested", plan$tested, plan$predictors, fmt_num(plan$r2_covariates)),
+               msg("plan_partial", fmt_num(round(part, 2)), fmt_num(round(part / (1 - part), 2)))))
+    },
+    effect_sentence = function(plan, src, lang) {
+      eff <- fmt_num(plan$effect)
+      args <- if (plan$effect_type == "f2") list(eff, src, fmt_num(round(plan$effect_test, 2)), plan$tested, plan$predictors)
+              else list(eff, src, plan$tested, plan$predictors, fmt_num(plan$r2_covariates))
+      do.call(msg_for, c(list("m_effect", variant_reg(plan)), args, list(lang = lang)))
+    },
+    variant = variant_reg,
+    check = function(plan) {
+      k <- plan[["predictors"]]; u <- plan[["tested"]]; cov <- plan[["r2_covariates"]]
+      f2 <- identical(plan$effect_type, "f2")
+      is.integer(k) && length(k) == 1L && !is.na(k) && k >= 2L && k <= 1000L &&
+        is.integer(u) && length(u) == 1L && !is.na(u) && u >= 1L && u < k &&
+        is.character(plan$effect_type) && length(plan$effect_type) == 1L &&
+        plan$effect_type %in% c("r2_change", "f2") && is_num1(plan$effect) &&
+        is_num1(plan$effect_test) && plan$effect_test > 0 && plan$effect_test <= 0.99 &&
+        (if (f2) is.numeric(cov) && length(cov) == 1L && is.na(cov) &&
+                 isTRUE(all.equal(plan$effect_test, plan$effect / (1 + plan$effect)))
+         else is_num1(cov) && cov >= 0 && cov < 1 &&
+              isTRUE(all.equal(plan$effect_test, plan$effect / (1 - cov)))) &&
         identical(as.numeric(plan$groups), 1) && is.null(plan[["r"]]) && isTRUE(is.na(plan[["k"]]))
     }
   )

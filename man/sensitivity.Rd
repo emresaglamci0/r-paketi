@@ -20,6 +20,7 @@ plan's \code{effect_type} (f or eta squared); the unit is kept in \code{attr(, "
 For "prop_two" \code{mde} is the detectable p1 with p2 fixed, in the direction of the planned difference.
 For "cor_pearson" mde is the detectable r with the sign of the planned correlation.
 For "chisq_indep" mde is the detectable Cohen's w.
+For "reg_partial" mde is in the plan's \code{effect_type} (R squared change or f squared of the tested predictors); the unit is kept in \code{attr(, "effect_type")}.
 }
 \description{
 For each combination of recruited per-group n and power, returns the
