@@ -9,7 +9,7 @@
 #   prepare(a, given)            validate test-specific arguments in the documented order;
 #                                `a` = plan_study() arguments (`effect` only when given, so read
 #                                it with a[["effect"]]), `given` = names of arguments the user
-#                                set explicitly (effect, effect_type, alternative, p1, p2). Returns list(effect, effect_test,
+#                                set explicitly (effect, effect_type, alternative, p1, p2, rows, cols). Returns list(effect, effect_test,
 #                                extra) where `extra` are fields stored in the plan
 #   n(p)                         analytic n per group; `p` = extra + effect_test, alpha,
 #                                power, alternative
@@ -23,6 +23,12 @@
 reject_anova_args <- function(a, given) {
   if (!is.null(a[["k"]])) fail("err_k_unused")
   if ("effect_type" %in% given) fail("err_effect_type_unused")
+  reject_table_args(given)
+}
+
+# rows and cols belong to chisq_indep only.
+reject_table_args <- function(given) {
+  if (any(c("rows", "cols") %in% given)) fail("err_table_unused")
 }
 
 # Shared by every test except prop_two.
@@ -98,6 +104,7 @@ test_spec <- list(
     prepare = function(a, given) {
       check_required(!"effect" %in% given, "effect")
       reject_p_args(a)
+      reject_table_args(given)
       k <- a[["k"]]
       if (!is_num1(k) || k < 2 || k != round(k) || k > .Machine$integer.max) fail("err_k")
       k <- as.integer(k)
@@ -207,6 +214,44 @@ test_spec <- list(
     check = function(plan) {
       is_num1(plan$effect_test) && abs(plan$effect_test) < 1 && plan$effect_test != 0 &&
         identical(plan$effect, plan$effect_test) && identical(as.numeric(plan$groups), 1) &&
+        is.null(plan[["r"]]) && isTRUE(is.na(plan[["k"]])) && isTRUE(is.na(plan[["effect_type"]]))
+    }
+  ),
+  chisq_indep = list(
+    directional = FALSE, min_n = 2, method = "chisq_indep_w",
+    groups = function(a) 1L,
+    prepare = function(a, given) {
+      check_required(!"effect" %in% given, "effect")
+      effect <- a[["effect"]]
+      if (!is_num1(effect) || effect <= 0 || effect > 1) fail("err_w")
+      rows <- a[["rows"]]; cols <- a[["cols"]]
+      ok_dim <- function(x) is_num1(x) && x == round(x) && x >= 2 && x <= 1000
+      if (!ok_dim(rows) || !ok_dim(cols)) fail("err_table")
+      rows <- as.integer(rows); cols <- as.integer(cols)
+      if (!is.null(a[["k"]])) fail("err_k_unused")
+      if ("effect_type" %in% given) fail("err_effect_type_unused")
+      reject_p_args(a)
+      if ("alternative" %in% given) fail("err_alt_chisq")
+      if (!is.null(a[["r"]])) fail("err_r_unused")
+      list(effect = effect, effect_test = effect,
+           extra = list(effect_type = NA_character_, k = NA_integer_, r = NULL,
+                        rows = rows, cols = cols, df = as.integer((rows - 1) * (cols - 1))))
+    },
+    n = function(p) engine_n_chisq(p$effect_test, p$df, p$alpha, p$power),
+    mde = function(n, plan, power) engine_mde_chisq(n, plan$df, plan$alpha, power),
+    effect_lines = function(plan) c(
+      msg_for("plan_effect", plan$test, format(plan$effect)),
+      msg("plan_table", plan$rows, plan$cols, plan$df)),
+    effect_sentence = function(plan, src, lang) {
+      msg_for("m_effect", plan$test, fmt_num(plan$effect), src, plan$rows, plan$cols, plan$df, lang = lang)
+    },
+    variant = variant_plain,
+    check = function(plan) {
+      ok_dim <- function(x) is.integer(x) && length(x) == 1L && !is.na(x) && x >= 2L && x <= 1000L
+      is_num1(plan$effect_test) && plan$effect_test > 0 && plan$effect_test <= 1 &&
+        identical(plan$effect, plan$effect_test) && identical(as.numeric(plan$groups), 1) &&
+        ok_dim(plan[["rows"]]) && ok_dim(plan[["cols"]]) &&
+        identical(plan[["df"]], as.integer((plan$rows - 1L) * (plan$cols - 1L))) &&
         is.null(plan[["r"]]) && isTRUE(is.na(plan[["k"]])) && isTRUE(is.na(plan[["effect_type"]]))
     }
   )

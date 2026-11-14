@@ -59,6 +59,7 @@ check_plan <- function(x) {
   if (ok && spec$directional) {
     ok <- is.character(x$alternative) && length(x$alternative) == 1L && x$alternative %in% c("two.sided", "one.sided")
   }
+  if (ok && !spec$directional) ok <- isTRUE(is.na(x$alternative))
   if (ok) ok <- spec$check(x)
   if (!ok) fail("err_plan", "plan")
   invisible(x)

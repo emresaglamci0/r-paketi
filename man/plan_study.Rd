@@ -11,6 +11,8 @@ plan_study(
   k = NULL,
   p1 = NULL,
   p2 = NULL,
+  rows = NULL,
+  cols = NULL,
   effect_type = c("f", "eta2"),
   effect_basis = c("unknown", "prior_study", "pilot", "smallest_of_interest",
     "convention", "observed"),
@@ -23,14 +25,16 @@ plan_study(
 )
 }
 \arguments{
-\item{test}{\code{"t_independent"} (default), \code{"t_paired"}, \code{"anova_oneway"}, \code{"prop_two"} or \code{"cor_pearson"}.}
+\item{test}{\code{"t_independent"} (default), \code{"t_paired"}, \code{"anova_oneway"}, \code{"prop_two"}, \code{"cor_pearson"} or \code{"chisq_indep"}.}
 
 \item{effect}{Effect size, a single number: positive for the t tests and ANOVA; not used with \code{"prop_two"};
 for \code{"cor_pearson"} the expected Pearson r, between -1 and 1 and not 0 (its sign sets the
-direction of a one-sided test). Cohen's d for the t tests; for
+direction of a one-sided test); for \code{"chisq_indep"} Cohen's w, above 0 and at most 1 (the
+test has no direction, so \code{alternative} must not be set). Cohen's d for the t tests; for
 "anova_oneway", Cohen's f or eta squared as set by effect_type. For
 \code{"t_paired"}, d is the mean change divided by the SD of one measurement (pre and
-post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.}
+post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.
+For "chisq_indep", w is not Cramer's V: for tables larger than 2 x 2, w = V * sqrt(min(rows, cols) - 1). w above 1 is possible when rows and cols are both at least 3, but pwrss does not support it.}
 
 \item{r}{Only for \code{"t_paired"}: the correlation between the two repeated measurements,
 strictly between -1 and 1 (d is converted to dz = d / sqrt(2 * (1 - r))). An error
@@ -42,6 +46,9 @@ Required for \code{"anova_oneway"}; an error for the t tests.}
 \item{p1, p2}{Expected proportions in group 1 and group 2, each strictly between 0 and 1 and
 different. Required for \code{"prop_two"} (pooled-SE z test; the effect is the difference
 p1 - p2, so \code{effect} must not be given); an error for the other tests.}
+
+\item{rows, cols}{Number of rows and columns of the contingency table, each a single whole number
+from 2 to 1000. Required for \code{"chisq_indep"} (df = (rows - 1) * (cols - 1)); an error for the other tests.}
 
 \item{effect_type}{\code{"f"} (default) or \code{"eta2"}: whether \code{effect} for
 \code{"anova_oneway"} is Cohen's f or eta squared (converted by f = sqrt(eta2 / (1 - eta2))).
@@ -73,7 +80,7 @@ A list of class \code{plansize_plan}.
 \description{
 Computes the analytic n for an independent two-sample t test, a paired
 (repeated-measures) t test, the overall F test of a one-way ANOVA with k
-equal groups, a comparison of two independent proportions (pooled-SE z test) or a Pearson correlation (Fisher z test of H0: rho = 0),
+equal groups, a comparison of two independent proportions (pooled-SE z test) or a Pearson correlation (Fisher z test of H0: rho = 0) or a chi-square test of independence (Cohen's w),
 then applies the design effect and dropout
 correction with one final ceiling.
 }
@@ -81,4 +88,6 @@ correction with one final ceiling.
 For "prop_two", pwrss returns an already rounded n, so the dropout and design effect correction is applied to that rounded n; the recruitment target can be a few participants higher than a single final rounding would give.
 
 For "cor_pearson", n uses the Fisher z approximation without the bias correction of pwr::pwr.r.test (about 1 participant higher), so results can differ slightly from pwr or G*Power; the approximation is rough below about 10 participants but errs on the safe side.
+
+For "chisq_indep", n is for Pearson's chi-square test without continuity correction; in R use chisq.test(x, correct = FALSE) for 2 x 2 tables, as the default Yates correction lowers power.
 }

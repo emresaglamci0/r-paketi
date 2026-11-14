@@ -4,16 +4,17 @@
 #' smallest standardized effect detectable after dropout and design effect.
 #'
 #' @param plan A `plansize_plan` from [plan_study()].
-#' @param n Recruited per-group sample sizes (participants for "t_paired" and "cor_pearson"). Defaults to `plan$n_per_group`.
+#' @param n Recruited per-group sample sizes (participants for "t_paired", "cor_pearson" and "chisq_indep"). Defaults to `plan$n_per_group`.
 #' @param power Target powers, each from 0.01 to 0.99 and greater than the plan's alpha.
 #' @details `n_effective` is `floor(n * (1 - dropout) / deff)`, rounded down, so the
 #'   minimum detectable effect for a plan with dropout can be slightly above the
-#'   planned effect (conservative).
+#'   planned effect (conservative). With a very large planned effect, the higher powers in the default grid may be infeasible; pass a smaller power grid.
 #' @return A data frame of class `plansize_sensitivity` with columns
 #'   `n_recruited`, `n_effective`, `power`, `mde`. For "anova_oneway" `mde` is in the
 #'   plan's `effect_type` (f or eta squared); the unit is kept in `attr(, "effect_type")`.
 #'   For "prop_two" `mde` is the detectable p1 with p2 fixed, in the direction of the planned difference.
 #'   For "cor_pearson" mde is the detectable r with the sign of the planned correlation.
+#'   For "chisq_indep" mde is the detectable Cohen's w.
 #' @export
 sensitivity <- function(plan, n = NULL, power = c(0.80, 0.90, 0.95)) {
   check_required(missing(plan), "plan")

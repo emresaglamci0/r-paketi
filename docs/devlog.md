@@ -44,3 +44,8 @@
 
 - **Ajan doğru yaptı:** Korelasyonu yalnız `test_spec` ve motor dosyasına ekledi; Fisher z formülüyle birebir uyuştu. `pwr` ile karşılaştırma ±1'i aşınca toleransı genişletmek yerine durdu ve sordu. `pwrss`'in negatif yönde bozuk duyarlılık aramasını plan kontrol ajanı önceden buldu.
 - **Ajan kaçırdı:** Planın kendisi `pwr`'ı aynı yöntem sanmıştı (o bir düzeltme ekliyor). Genel inceleme iki kullanıcı sorunu buldu: `r = 0.3` yazan öğrenci yardımcı mesajı göremiyordu, tek yönlü testte yön metne yazılmıyordu. Düzenleme aracı testteki `\u` kaçışlarını iki kez gerçek harfe çevirdi; ajan fark edip düzeltti.
+
+## Dilim 8: ki-kare bağımsızlık testi (2026-11-14)
+
+- **Ajan doğru yaptı:** `pwrss::power.chisq.gof` ile Cohen w ve serbestlik derecesinden toplam n'yi hesapladı; `pwr` ile 504 bileşimde uyuştu, simülasyonda güç .814. Kodu yalnız test arayüzü üzerinden ekledi, tablo argümanlarını reddeden ortak yardımcıyı paylaşılan yerlerden çağırdı.
+- **Ajan kaçırdı:** Plan kontrol ajanı `df`'nin tam sayı olması gerektiğini önceden buldu. Genel inceleme iki öğrenci tuzağını yakaladı: 2×2 tabloda R'ın varsayılan Yates düzeltmesi gücü .75'e düşürüyordu ve metin bunu söylemiyordu; makalelerdeki Cramér V'nin w sanılması riski belgede yoktu.

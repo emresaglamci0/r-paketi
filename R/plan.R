@@ -2,17 +2,19 @@
 #'
 #' Computes the analytic n for an independent two-sample t test, a paired
 #' (repeated-measures) t test, the overall F test of a one-way ANOVA with k
-#' equal groups, a comparison of two independent proportions (pooled-SE z test) or a Pearson correlation (Fisher z test of H0: rho = 0),
+#' equal groups, a comparison of two independent proportions (pooled-SE z test) or a Pearson correlation (Fisher z test of H0: rho = 0) or a chi-square test of independence (Cohen's w),
 #' then applies the design effect and dropout
 #' correction with one final ceiling.
 #'
-#' @param test `"t_independent"` (default), `"t_paired"`, `"anova_oneway"`, `"prop_two"` or `"cor_pearson"`.
+#' @param test `"t_independent"` (default), `"t_paired"`, `"anova_oneway"`, `"prop_two"`, `"cor_pearson"` or `"chisq_indep"`.
 #' @param effect Effect size, a single number: positive for the t tests and ANOVA; not used with `"prop_two"`;
 #'   for `"cor_pearson"` the expected Pearson r, between -1 and 1 and not 0 (its sign sets the
-#'   direction of a one-sided test). Cohen's d for the t tests; for
+#'   direction of a one-sided test); for `"chisq_indep"` Cohen's w, above 0 and at most 1 (the
+#'   test has no direction, so `alternative` must not be set). Cohen's d for the t tests; for
 #'   "anova_oneway", Cohen's f or eta squared as set by effect_type. For
 #'   `"t_paired"`, d is the mean change divided by the SD of one measurement (pre and
 #'   post SDs assumed equal), not by the SD of the difference scores; do not enter a dz here.
+#'   For "chisq_indep", w is not Cramer's V: for tables larger than 2 x 2, w = V * sqrt(min(rows, cols) - 1). w above 1 is possible when rows and cols are both at least 3, but pwrss does not support it.
 #' @param r Only for `"t_paired"`: the correlation between the two repeated measurements,
 #'   strictly between -1 and 1 (d is converted to dz = d / sqrt(2 * (1 - r))). An error
 #'   for the other tests. For `"cor_pearson"`, give the expected correlation as `effect`, not as `r`.
@@ -27,6 +29,8 @@
 #' @param p1,p2 Expected proportions in group 1 and group 2, each strictly between 0 and 1 and
 #'   different. Required for `"prop_two"` (pooled-SE z test; the effect is the difference
 #'   p1 - p2, so `effect` must not be given); an error for the other tests.
+#' @param rows,cols Number of rows and columns of the contingency table, each a single whole number
+#'   from 2 to 1000. Required for `"chisq_indep"` (df = (rows - 1) * (cols - 1)); an error for the other tests.
 #' @param effect_basis Where the effect came from: "unknown" (default), "prior_study",
 #'   "pilot", "smallest_of_interest", "convention" or "observed". "unknown" and
 #'   "convention" give a warning of class `plansize_basis_warning`; "observed" is an
@@ -40,10 +44,12 @@
 #' @details For "prop_two", pwrss returns an already rounded n, so the dropout and design effect correction is applied to that rounded n; the recruitment target can be a few participants higher than a single final rounding would give.
 #'
 #' For "cor_pearson", n uses the Fisher z approximation without the bias correction of pwr::pwr.r.test (about 1 participant higher), so results can differ slightly from pwr or G*Power; the approximation is rough below about 10 participants but errs on the safe side.
+#'
+#' For "chisq_indep", n is for Pearson's chi-square test without continuity correction; in R use chisq.test(x, correct = FALSE) for 2 x 2 tables, as the default Yates correction lowers power.
 #' @return A list of class `plansize_plan`.
 #' @export
 plan_study <- function(test = "t_independent", effect, r = NULL, k = NULL,
-                       p1 = NULL, p2 = NULL,
+                       p1 = NULL, p2 = NULL, rows = NULL, cols = NULL,
                        effect_type = c("f", "eta2"),
                        effect_basis = c("unknown", "prior_study", "pilot",
                                         "smallest_of_interest", "convention", "observed"),
@@ -53,8 +59,9 @@ plan_study <- function(test = "t_independent", effect, r = NULL, k = NULL,
   test <- check_choice(test, names(test_spec), "test", exact = TRUE)
   spec <- test_spec[[test]]
   given <- c(if (!missing(effect)) "effect", if (!missing(effect_type)) "effect_type",
-             if (!missing(alternative)) "alternative", if (!is.null(p1)) "p1", if (!is.null(p2)) "p2")
-  args <- list(r = r, k = k, effect_type = effect_type, p1 = p1, p2 = p2)
+             if (!missing(alternative)) "alternative", if (!is.null(p1)) "p1", if (!is.null(p2)) "p2",
+             if (!is.null(rows)) "rows", if (!is.null(cols)) "cols")
+  args <- list(r = r, k = k, effect_type = effect_type, p1 = p1, p2 = p2, rows = rows, cols = cols)
   if (!missing(effect)) args$effect <- effect
   prep <- spec$prepare(args, given)
   effect_basis <- check_choice(effect_basis, eval(formals()$effect_basis), "effect_basis")

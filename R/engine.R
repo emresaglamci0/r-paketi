@@ -72,3 +72,17 @@ engine_mde_cor <- function(n, sign, alpha, power, alternative) {
     alpha = alpha, alternative = alternative, ceil.n = FALSE, verbose = 0))
   sign * r$rho
 }
+
+# Chi-square test of independence via pwrss's chi-square power function (Cohen's w, df = (rows - 1) * (cols - 1)). Returns total n.
+engine_n_chisq <- function(w, df, alpha, power) {
+  r <- guard_pwrss(pwrss::power.chisq.gof(w = w, df = df, power = power, alpha = alpha,
+    ceil.n = FALSE, verbose = 0), "err_infeasible_plan_chisq_indep")
+  r$n
+}
+
+# Smallest detectable Cohen's w for total n.
+engine_mde_chisq <- function(n, df, alpha, power) {
+  r <- guard_pwrss(pwrss::power.chisq.gof(w = NULL, df = df, n = n, power = power, alpha = alpha,
+    ceil.n = FALSE, verbose = 0))
+  r$w
+}

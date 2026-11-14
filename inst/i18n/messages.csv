@@ -121,3 +121,20 @@ m_result_cor_pearson_pos,"For a %s test of H0: ρ = 0 against H1: ρ > 0 based o
 m_result_cor_pearson_neg,"For a %s test of H0: ρ = 0 against H1: ρ < 0 based on the Fisher z transformation, with alpha = %s and power = %s, the required sample size was %s participants.","Fisher z dönüşümüne dayalı, H1: ρ < 0 yönündeki H0: ρ = 0 testi (%1$s), alfa = %2$s ve güç = %3$s için gerekli örneklem büyüklüğü %4$s katılımcıdır."
 plan_alt_cor_pearson_pos,Alternative hypothesis: %s (ρ > 0),Alternatif hipotez: %s (ρ > 0)
 plan_alt_cor_pearson_neg,Alternative hypothesis: %s (ρ < 0),Alternatif hipotez: %s (ρ < 0)
+val_chisq_indep,chi-square test of independence,ki-kare bağımsızlık testi
+err_w,"For test = ""chisq_indep"", 'effect' must be Cohen's w, a single number greater than 0 and at most 1.","test = ""chisq_indep"" için 'effect' Cohen w olmalı: 0'dan büyük, en fazla 1 olan tek bir sayı."
+err_table,"Arguments 'rows' and 'cols' must each be a single whole number from 2 to 1000.","'rows' ve 'cols' argümanlarının her biri 2 ile 1000 arasında tek bir tam sayı olmalı."
+err_table_unused,"Arguments 'rows' and 'cols' are used only with test = ""chisq_indep"".","'rows' ve 'cols' argümanları yalnız test = ""chisq_indep"" ile kullanılır."
+err_alt_chisq,"The chi-square test of independence has no direction; do not set 'alternative'.","Ki-kare bağımsızlık testinin yönü yoktur; 'alternative' belirtmeyin."
+err_infeasible_plan_chisq_indep,"pwrss cannot solve this design: the effect is too small or too large for a computable sample size. Check effect, rows, cols, alpha and power.","pwrss bu tasarımı çözemiyor: etki, hesaplanabilir bir örneklem büyüklüğü için çok küçük ya da çok büyük. effect, rows, cols, alpha ve power değerlerini kontrol edin."
+plan_effect_chisq_indep,Expected effect size (Cohen's w): %s,Beklenen etki büyüklüğü (Cohen w): %s
+plan_table,"Table size (rows x columns): %s x %s; degrees of freedom: %s","Tablo boyutu (satır x sütun): %s x %s; serbestlik derecesi: %s"
+plan_n_group_chisq_indep,Participants to recruit (includes dropout and design effect): %s,Alınması gereken katılımcı sayısı (kayıp ve tasarım etkisi dahil): %s
+sens_title_chisq_indep,Smallest detectable effect (Cohen's w),Saptanabilir en küçük etki (Cohen w)
+col_n_recruited_chisq_indep,Recruited participants,Alınan katılımcı
+col_n_effective_chisq_indep,Effective participants,Etkin katılımcı
+m_effect_chisq_indep,The effect size used for planning was Cohen's w = %s%s for a %s x %s contingency table with %s degrees of freedom.,"Planlamada, serbestlik derecesi %5$s olan %3$s x %4$s çapraz tablo için etki büyüklüğü Cohen w = %1$s olarak alınmıştır%2$s."
+m_result_chisq_indep,"For Pearson's chi-square test of independence without continuity correction, with alpha = %s and power = %s, the required sample size was %s participants in total.",Süreklilik düzeltmesi uygulanmayan Pearson ki-kare bağımsızlık testinde alfa = %s ve güç = %s için gerekli örneklem büyüklüğü toplam %s katılımcıdır.
+m_adjust_dropout_chisq_indep,"Allowing for an expected dropout rate of %s%%, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_adjust_deff_chisq_indep,"Allowing for a design effect of %s, the recruitment target was %s participants.",Tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
+m_adjust_both_chisq_indep,"Allowing for an expected dropout rate of %s%% and a design effect of %s, the recruitment target was %s participants.",Beklenen kayıp oranı %%%s ve tasarım etkisi %s varsayıldığında hedeflenen katılımcı sayısı %s olarak belirlenmiştir.
