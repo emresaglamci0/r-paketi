@@ -259,7 +259,16 @@ Bağlamsız Claude incelemesi, genel inceleme, kullanıcı okuması ve denemesi 
 3. Dilim 9 `plan_study()` imzasındaki `effect_type = c("f", "eta2")` varsayılanını korur; bu dilim de korur (`"r2_change"` yalnız `reg_partial` dalının kümesindedir). Dilim 9'un `missing()` + `length == 1` + `check_choice(..., exact = TRUE)` kalıbı aynen kullanılır; her test yalnız kendi kümesini kabul eder.
 4. Dilim 9 `plan_study` altın dosyasına yeni test eklemeyi gerektirmiyordu; 9b de eklemez (yalnız eski çıktıların değişmediğini kanıtlar).
 
-## Açık sorular
+## Kullanıcı kararları (2026-11-14)
+
+1. `effect_type = "r2_change"` (`r2_covariates` zorunlu) ya da `"f2"`; zorunlu, tam eşleşme, `length == 1`.
+2. `tested = predictors` hata verir ve `test = "reg_overall"`'a yönlendirir.
+3. `pwr` düz sonucu çıktıda gösterilmez; yalnız yardım sayfasında yöntem farkı notu.
+4. `tested = 1` yalnız iki yönlü; `alternative` verilirse hata.
+5. Rastgele yordayıcı: Dilim 9 ile aynı, yalnız not (Opus kararı; Dilim 9c kararı `reg_partial`'ı kapsamaz).
+6. pwrss'in `r.squared.change` anlamı yardım sayfasında kaynak koda dayanarak not edilir; yazarlarla iletişim yok (Opus kararı).
+
+## Açık sorular (yanıtlandı)
 
 1. **Argüman adları ve ölçü:** `effect_type = "r2_change"` ile `r2_covariates` zorunlu (öneri), mi; yoksa yalnız `"f2"` mi (daha az karışıklık, ama araştırmacıların elindeki sayı çoğunlukla ΔR²)? `r2_covariates` adı uygun mu (alternatif: `r2_reduced`)?
 2. **`tested = predictors`:** hata mı (öneri, `reg_overall` yönlendirmesi) yoksa sessizce genel teste mi çevrilsin?
