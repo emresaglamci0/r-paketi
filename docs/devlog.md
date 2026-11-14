@@ -65,3 +65,8 @@
 - **Ajan doğru yaptı:** Kaynağın tek yoldan (`write_methods`) geçtiğini doğruladı, düzeltmeyi tek satırda yaptı (APA: iç parantez köşeli), önce başarısız olan ve beş test türünü iki dilde deneyen bir test yazdı.
 - **Ajan kaçırdı:** Kritik bir şey kaçırmadı. Sorun Dilim 4, 9 ve 9b incelemelerinde parça parça bulunmuştu; kök neden ancak 9b genel incelemesinde görüldü.
 - **Opus kaçırdı:** Devlog girdilerini iki kez kabuk tırnağı içinde yazdı; Türkçe kesme işaretleri tırnağı kapattı ve metin bozuldu. Devlog artık düzenleme aracıyla yazılıyor.
+
+## Dilim 9c: rastgele yordayıcı bilgi satırı (2026-11-14)
+
+- **Ajan doğru yaptı:** DMAR'ı `Suggests`'te tuttu ve tek erişimi `has_dmar()` korumasının arkasına koydu; DMAR'ın G*Power örneğiyle uyumunu (.6626115 ve .662627) teste bağladı, bir n'yi rastgele yordayıcılı simülasyonla doğruladı. Plan n'si ve yöntem metni değişmedi; mock testleri DMAR yokken, hata verirken ve 100.000 eşiğinde satırın sessizce kaybolduğunu sınıyor.
+- **Ajan kaçırdı:** Genel inceleme, önceki dilimlerde de görülen tuzağı yine buldu: çıktı öğrenciye iki sayıdan hangisini hedefleyeceğini söylemiyordu. Satıra ve yardım sayfasına yönlendirme eklendi. Testteki sabit DMAR n'leri bağımsız referans gibi duruyordu, yorumla işaretlendi. DMAR'sız ortamda `check` denenemedi. Kullanıcı 8. adımı atladı.
