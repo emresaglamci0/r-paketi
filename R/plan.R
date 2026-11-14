@@ -72,6 +72,7 @@
 #' @param alternative `"two.sided"` or `"one.sided"`.
 #' @param dropout Expected dropout proportion, in [0, 1).
 #' @param deff Design effect, at least 1.
+#' @details For `reg_overall`, print also shows the participants needed if predictors are random (Sampson's random model via DMAR). Measured predictors, as in most observational studies, are random, and recruiting that number keeps the target power. The line is absent when the suggested package DMAR is not installed, when the plan n is above 100,000, or when DMAR fails. The plan n and the methods text keep the fixed-predictor assumption.
 #' @details For "prop_two", pwrss returns an already rounded n, so the dropout and design effect correction is applied to that rounded n; the recruitment target can be a few participants higher than a single final rounding would give.
 #'
 #' For "cor_pearson", n uses the Fisher z approximation without the bias correction of pwr::pwr.r.test (about 1 participant higher), so results can differ slightly from pwr or G*Power; the approximation is rough below about 10 participants but errs on the safe side.

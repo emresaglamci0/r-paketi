@@ -15,6 +15,7 @@
 #                                power, alternative
 #   mde(n, plan, power)          smallest detectable effect, in the unit the user entered
 #   effect_lines(plan)           effect lines for print(), in order
+#   info_lines(plan)             optional extra print() lines (character or NULL)
 #   effect_sentence(plan, src, lang)  effect sentence of the methods text
 #   variant(plan)                msg_for() suffixes, most specific first
 #   check(plan)                  test-specific validity of a plan, TRUE or FALSE
@@ -313,6 +314,10 @@ test_spec <- list(
       args <- if (plan$effect_type == "f2") list(fmt_num(plan$effect), src, fmt_num(round(plan$effect_test, 2)), plan$predictors)
               else list(fmt_num(plan$effect), src, plan$predictors)
       do.call(msg_for, c(list("m_effect", variant_reg(plan)), args, list(lang = lang)))
+    },
+    info_lines = function(plan) {
+      n <- random_predictor_n(plan)
+      if (!is.null(n)) msg("plan_random_n", n)
     },
     variant = variant_reg,
     check = function(plan) {

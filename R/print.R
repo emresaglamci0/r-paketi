@@ -21,6 +21,7 @@ print.plansize_plan <- function(x, ...) {
   cat(msg("plan_dropout", format(100 * x$dropout)), "\n")
   cat(msg("plan_deff", format(x$deff)), "\n")
   cat(msg("plan_method", x$method, x$engine_version), "\n")
+  if (!is.null(spec$info_lines)) for (line in spec$info_lines(x)) cat(line, "\n")
   note <- msg_for_opt("plan_note", x$test)
   if (!is.null(note)) cat("\n", note, "\n", sep = "")
   invisible(x)
