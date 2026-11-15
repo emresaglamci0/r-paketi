@@ -18,7 +18,7 @@ random_predictor_n <- function(plan) {
   n <- tryCatch(dmar_required_n(plan$effect_test, plan$predictors, plan$alpha, plan$power),
                 error = function(e) NULL, warning = function(w) NULL)
   if (length(n) != 1L || !is.finite(n) || n < 1) return(NULL)
-  as.integer(ceiling(n * plan$deff / (1 - plan$dropout)))
+  as.integer(round_up(n * plan$deff / (1 - plan$dropout)))
 }
 
 # Random-predictor power of the overall F test at total n, or NULL as in random_predictor_n().

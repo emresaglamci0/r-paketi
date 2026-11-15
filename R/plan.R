@@ -117,7 +117,7 @@ plan_study <- function(test = "t_independent", effect, r = NULL, k = NULL,
   groups <- spec$groups(prep$extra)
   n_analytic <- spec$n(c(prep$extra, list(effect_test = prep$effect_test, alpha = alpha,
                                           power = power, alternative = alternative)))
-  n_raw <- ceiling(n_analytic * deff / (1 - dropout))
+  n_raw <- round_up(n_analytic * deff / (1 - dropout))
   if (groups * n_raw > .Machine$integer.max) fail("err_overflow")
   n_group <- as.integer(n_raw)
   warn_basis(effect_basis)

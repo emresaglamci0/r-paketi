@@ -56,6 +56,7 @@ check_adjust <- function(dropout, deff) {
 }
 
 # Round up with a floating-point margin (400 * 1.1 is 440.00000000000006).
+# shortcut: absolute margin, no effect above about 1e7 per group; switch to a relative margin if such n become realistic.
 round_up <- function(x) ceiling(x - 1e-9)
 
 # Guards against hand-edited plans before sensitivity().

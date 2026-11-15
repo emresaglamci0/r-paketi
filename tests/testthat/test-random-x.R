@@ -23,6 +23,9 @@ test_that("random-predictor n for the measured cases", {
   expect_identical(plansize:::random_predictor_n(q_reg(0.13, 3)), 80L)
   expect_identical(plansize:::random_predictor_n(q_reg(0.02, 1)), 390L)
   expect_identical(plansize:::random_predictor_n(q_reg(0.26, 5)), 45L)
+  # 105 * 1.1 / 0.7 is 165 exactly; floating-point excess must not add a participant.
+  expect_identical(plansize:::dmar_required_n(0.10, 3, 0.05, 0.80), 105)
+  expect_identical(plansize:::random_predictor_n(q_reg(0.10, 3, dropout = 0.30, deff = 1.1)), 165L)
   expect_identical(plansize:::random_predictor_n(q_reg(0.50, 3)), 18L)
   # the plan n (pwrss, fixed predictors) is unchanged
   expect_identical(c(q_reg(0.13, 3)$n_total, q_reg(0.02, 1)$n_total, q_reg(0.26, 5)$n_total, q_reg(0.50, 3)$n_total),

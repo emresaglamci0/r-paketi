@@ -15,6 +15,12 @@ test_that("prop_two plan", {
   expect_identical(quiet_plan(test = "prop_two", p1 = 0.45, p2 = 0.30, alternative = "one.sided")$n_per_group, 128L)
   expect_identical(quiet_plan(test = "prop_two", p1 = 0.45, p2 = 0.30, dropout = 0.1)$n_per_group, 182L)
 })
+test_that("dropout and deff rounding ignores floating-point excess", {
+  # 28 * 1.1 / 0.7 is 44 exactly but 44.000000000000007 in floating point.
+  p <- quiet_plan(test = "prop_two", p1 = 0.70, p2 = 0.33, dropout = 0.30, deff = 1.1)
+  expect_identical(p$n_analytic, 28)
+  expect_identical(p$n_per_group, 44L)
+})
 test_that("prop_two arguments are validated", {
   expect_error(plan_study(test = "prop_two", p2 = 0.3), "'p1' is required", fixed = TRUE)
   expect_error(plan_study(test = "prop_two", p1 = 0.3), "'p2' is required", fixed = TRUE)
