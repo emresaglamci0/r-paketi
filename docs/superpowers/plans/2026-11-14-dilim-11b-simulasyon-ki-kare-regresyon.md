@@ -1,172 +1,112 @@
-# Dilim 11b: simülasyon, ki-kare ve regresyon testleri Implementation Plan
+# Dilim 11b: simülasyon, ki-kare ve regresyon testleri
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development veya superpowers:executing-plans. Adımlar `- [ ]` ile izlenir.
 
-**Önkoşul:** Dilim 11a (`simulate_power`, `test_spec$*$power/simulate` alanları, `engine_power_*`), Dilim 8 (`chisq_indep`), **Dilim 9** (`reg_overall`) ve **Dilim 9b** (`reg_partial`) `main`'de olmalı. Dilim 9/9b kodlanmadan bu plan uygulanamaz.
+**Durum:** 2026-11-15'te güncel `main`'e (11a sonrası, `8a25b99`) göre yeniden yazıldı. Bağımsız plan kontrolünden (1 engel, 5 düzeltme, 4 küçük bulgu) sonra güncellendi.
 
-**Goal:** `simulate_power()` üç testi daha kapsar: `chisq_indep`, `reg_overall`, `reg_partial`. Regresyonda yordayıcıların nasıl üretildiği gücü değiştirdiği için bu dilim iki mod tanımlar: `predictors = "fixed"` (pwrss/G*Power'ın yöntemi; **aynı yöntem**, `pass` ölçütü bununla verilir) ve `predictors = "random"` (kullanıcı durumu; yalnız bilgi, fark raporlanır).
+**Amaç:** `simulate_power()` kalan üç testi kapsar: `chisq_indep`, `reg_overall`, `reg_partial`. Bundan sonra `test_spec`'teki her test simüle edilebilir.
 
-**Architecture:** 11a ile aynı: `test_spec`'e üç satırda `power` ve `simulate` alanları; `engine_power_chisq`, `engine_power_reg`. `simulate_power()` imzasına yalnız `predictors = c("fixed", "random")` eklenir (yalnız regresyon testlerinde anlamlı; öteki testlerde verilirse hata `err_sim_predictors`).
+**Mimari:** 11a ile aynı. Üç `test_spec` girdisine `power` ve `simulate` alanları, `R/engine.R`'a `engine_power_chisq` ve `engine_power_reg`. Regresyonda yordayıcıların üretimi gücü değiştirir, bu yüzden `simulate_power()`'a yeni argüman gelir: `predictor_type = c("fixed", "random")`.
 
-**Tech Stack:** R 4.6.1, pwrss 1.3.3, testthat 3. Referanslar: `pwr::pwr.chisq.test` (aynı yöntem), `pwr::pwr.f2.test` (genel test aynı yöntem; kısmi testte dönüştürülmüş biçim, bkz. Dilim 9b), simülasyon.
+**Spec:** `docs/superpowers/specs/2026-11-09-orneklem-planlama-paketi-design.md` §6, §8 madde 11.
 
-**Spec:** `docs/superpowers/specs/2026-11-09-orneklem-planlama-paketi-design.md` (§6, §8 madde 11)
+## Kısıtlar
 
-## Global Constraints
+- `D:\R-4.6.1\bin\Rscript.exe`; `TEMP`/`TMP`/`TMPDIR` = `D:\rtmp`. R kodu ASCII; metin `inst/i18n/messages.csv`'de, `en` ve `tr` birlikte.
+- Tolerans .02, genişletilmez. Aynı yöntem dışındaki fark başarısızlık değildir.
+- Tohum, `skip_on_cran()`, `sim_status()` 11a ile aynı. `sim_status()` değişmez. Testler 11a gibi `seed = 11` kullanır.
+- Dal: `slice-11b-simulate-chisq-reg`. Commit yalnız kullanıcı isteyince.
 
-- Rscript yolu: `D:\R-4.6.1\bin\Rscript.exe`. `TEMP`, `TMP`, `TMPDIR` = `D:\rtmp`.
-- R kodu ve testler ASCII. Kullanıcı metinleri `msg()` ile, `en` ve `tr` birlikte. CSV UTF-8, BOM yok.
-- Hesap `pwrss`'ten gelir. Tolerans: ampirik güç analitik güçten ≤ .02; aşılırsa dur, toleransı genişletme (Dilim 9 ve 11a kuralları). Farklı yöntem farkı başarısızlık değildir, yöntem notuna yazılır.
-- Tohum yönetimi ve `skip_on_cran()` 11a ile aynı.
-- Mevcut testlerin çıktıları değişmez.
-- `devtools::test()` `WARN 0`; `dev\check.ps1` `Status: OK`.
-- Dal: `slice-11b-simulate-chisq-reg`. Commit yalnız kullanıcı onayından sonra.
+## Kararlar (kullanıcı, 2026-11-15)
 
-## Doğrulanmış gerçekler (R'da denendi)
+1. **Argüman adı `predictor_type`.** `plan_study()`'de `predictors` yordayıcı sayısıdır; aynı adın iki anlamı öğrenci tuzağı olurdu.
+2. **Varsayılan `"fixed"`.** pwrss'in yöntemi; plan n'si buna göre.
+3. **`reg_partial` + `"random"`:** simüle edilir, `status = NA`, fark yalnız raporlanır. DMAR'da kısmi R² için rastgele-X güç fonksiyonu yok (`ss_power_reg_coef` tek katsayı içindir, farklı test).
+4. **Ki-kare büyük w:** `w >= w_max` ise okunur hata `err_sim_table`. Başka örüntüye düşülmez.
+5. **`reg_overall` + `"random"` + DMAR:** simülasyon yalnız DMAR gücüyle karşılaştırılır, hedef kuralı uygulanmaz (`sim_status(planned = FALSE)`). Gerekçe: plan n'si sabit X içindir; rastgele X'te bu n'de güç hedefin altında kalır (R² .30, k 3, n 30: DMAR .7667). Hedef kuralı uygulansaydı doğru çalışan her plan KALDI alırdı ve KALDI'nın 11a'daki anlamı ("formül bu n'de tutmuyor") karışırdı. Not `random`: "Planın n'si sabit yordayıcı içindir; rastgele yordayıcı için gereken n plan çıktısındaki DMAR satırındadır."
 
-**Ki-kare (10.000 tekrar, tohum 1, `chisq.test(correct = FALSE)`):** w, bilinen kenar sınırlarla tek-parametreli tablo kurulur: satır ve sütun marjinalleri eşit (1/rows, 1/cols). Sabit örüntü (ASCII, tek tanım):
+## R'da ölçülen gerçekler
 
-```r
-make_table <- function(rows, cols, w) {
-  a <- seq_len(rows) - (rows + 1) / 2          # centered row scores
-  b <- seq_len(cols) - (cols + 1) / 2          # centered column scores
-  M <- outer(a, b); M <- M / sqrt(sum(M^2))    # zero row/column sums, Frobenius norm 1
-  1 / (rows * cols) + w / sqrt(rows * cols) * M
-}
-```
+Plan: `docs/research/probes/11b-probe.R`, tohum 1, 10.000 tekrar. Kontrol ajanı ayrıca tohum 2 ve 3 ile ölçtü.
 
-`M`'nin satır ve sütun toplamları 0'dır, bu yüzden marjinaller eşit kalır; hücre olasılıkları toplamı 1. R'da doğrulandı (3x3, 2x2, 5x5; w .3): `all.equal(rowSums(P), rep(1/rows, rows))` TRUE ve `sqrt(sum((P - E)^2 / E))` = 0.3 (E = marjinallerin çarpımı). Sonuçlar (`rmultinom` ile n'lik örneklem, 10.000 tekrar):
-
-| Durum | n | ampirik | analitik (pwrss) | pwr |
-|---|---|---|---|---|
-| w .30, 3x3 (df 4) | 133 | .8137 | .8013 | .8013 |
-| w .30, 2x2 (df 1) | 88 | .8088 | .8035 | .8035 |
-| w .30, 5x5 (df 16) | 215 | .8127 | .8022 | - |
-
-(Hepsinde fark ≤ .012, sınırın altı; 2x2'de `correct = FALSE` şart, Dilim 8 belgesi. Tek tohumlu koşular; test `reps = 10000, seed = 1` ile bunları yeniden üretir, sayılar tohuma göre ±.005 oynar.)
-
-**`w_max(rows, cols)`** (11b'de tanımlanan, dışa aktarılmayan yardımcı; `R/simulate.R`): bu örüntüyle tüm hücre olasılıklarının pozitif kalabildiği üst sınır. `M` yukarıdaki gibi normalize edilmişse `w_max = 1 / (sqrt(rows * cols) * max(abs(M)))` (en küçük hücre `w = w_max`'ta 0'a iner; geçerli aralık `w < w_max`). Değerler: 2x2 → 1.0; 2x3 → .8165; 3x3 → .6667; 3x4 → .6086; 5x5 → **.5** (R'da hesaplandı). 13b ızgarası `plansize:::w_max` ile çağırır. `w = .5`, 5x5'te en küçük hücre ≈ 0 (`-7e-18`) olur ve `rmultinom` hata verirdi; üretici `min(P) > 0` kontrol eder, aksi hâlde `err_sim_table` ("bu w bu örüntüyle bu tabloda eşit marjinallerle kurulamıyor"). **Dikkat:** bu bir örüntü sınırıdır, tablonun varoluş sınırı değildir: başka örüntüyle 5x5, w .5 kurulabilir (ör. `v <- c(4, -1, -1, -1, -1); M <- outer(v, v)` normalize edilince en küçük hücre .02, w .5 doğrulandı). Hata metni bu yüzden "bu örüntüyle" der; başka örüntüye geçme kararı açık soru 3'tedir.
-
-**Regresyon (`reg_overall`, yordayıcılar rastgele normal, 4.000 tekrar):**
-
-| R² | k | n | analitik | rastgele-X simülasyon | fark |
+| Durum | n | pwrss | sabit X sim. | rastgele X sim. | DMAR rastgele güç |
 |---|---|---|---|---|---|
-| .13 | 1 | 55 | .804 | .793 | .011 |
-| .13 | 3 | 77 | .800 | .788 | .012 |
-| .13 | 5 | 92 | .802 | .788 | .014 |
-| .13 | 10 | 119 | .804 | .796 | .008 |
-| **.30** | **3** | **30** | **.806** | **.762** | **.043** |
-| .05 | 3 | 212 | .802 | .809 | -.007 |
-| .05 | 10 | 318 | .800 | .787 | .014 |
-| .02 | 5 | 635 | .801 | .798 | .002 |
+| R² .13, k 3 | 77 | .8001 | .8017 | .7818 | .7845 |
+| R² .30, k 3 | 30 | .8059 | .8078 | .7681 | .7667 |
+| R² .05, k 10 | 318 | .8003 | .7985 | .7906 | .7958 |
+| `reg_partial` ΔR² .10, kov. R² .20, k 5, tested 2 | 71 | .8021 | .8029 | - | - |
 
-Rastgele yordayıcılarda fark küçük n ve büyük R²'de .02'yi aşıyor. Sabit tasarımda (dik, ölçeği n olan X; 40.000 tekrar) `reg_partial` için ampirik/analitik: .8058/.8030, .8028/.8021, .7471/.7497, .8576/.8553 (hepsi ≤ .005).
+| Ki-kare | n | pwrss | sim. | sonuç |
+|---|---|---|---|---|
+| 3x3, w .30 | 133 | .8013 | .8115 | pass (pay en dar, +.0102) |
+| 2x2, w .30 | 88 | .8035 | .8095 | pass |
+| 2x5, w .10 | 1194 | .8002 | .7998 | pass |
+| 2x3, w .80 | 16 | .825 | .9673 | warn (formül küçük n'de tutucu) |
 
-Sabit tasarım kurulumu (aynı yöntem): `X` = `qr.Q(qr(scale(rnorm matrisi))) * sqrt(n)` (sütunlar dik, ortalaması 0, `sum(x^2) = n`), `y = X beta + e`, F istatistiği QR artıklarından. `reg_partial` için gerçek ΔR² ve kovaryat R² sırasıyla test edilen ve kovaryat sütunlarına dağıtılır; Dilim 9b'nin kısmi R² dönüşümü simülasyonda kullanılmaz (veriyi gerçek ΔR²/kovaryat R²'den kurar), böylece dönüşüm bağımsız sınanır.
+- Sabit X (ortalanmış dik sütunlar, `sum(x^2) = n`, eşit eğimler) ncp'yi f2·n yapar; pwrss `lambda <- f.squared * n` kullanır. Aynı yöntem.
+- `reg_partial` verisi gerçek ΔR² ve kovaryat R²'den kurulur: test edilen sinyal ΔR²/(1-R²tam), kovaryat sinyali kov/(1-R²tam), hata varyansı 1. 9b'nin `effect_test` dönüşümü kullanılmaz; böylece dönüşüm bağımsız sınanır.
+- DMAR `ss_power_R2(specified_N = n, random_predictors = TRUE)` ile rastgele normal X simülasyonu aynı model.
+- Ki-kare örüntüsü (eşit marjinaller, `M = outer(a, b)` normalize) w'yi birebir verir. Örüntünün üst sınırı `w_max = 1/(sqrt(rc) * max|M|)`: 2x2 1, 2x3 .8165, 3x3 .6667, 3x4 .6086, 5x5 .5, 2x5 .707. Bu, tablonun değil örüntünün sınırıdır.
 
-## Kararlar (öneri)
+## Değişiklikler
 
-- `reg_overall` ve `reg_partial` için `simulate_power(plan, predictors = "fixed")` varsayılan; `pass` fixed moduna göre (≤ .02 ve hedeften ≥ -.02). `"random"` modunda `pass` hesaplanmaz (`NA`), `diff` ve çıktı satırı "rastgele yordayıcı farkı" yazar. Gerekçe: pwrss'in modeli sabit yordayıcıdır; kullanıcının gerçek durumu rastgeledir ve fark yöntem farkıdır, başarısızlık değildir (çelişki kuralı). Toleransı genişletmiyorum; "random" yalnız bilgidir.
-- Rastgele yordayıcı farkı eşiği (ör. n < 50 ve R² > .25'te uyarı) bu dilimde **eklenmez** (kullanıcı kararı, açık soru 2 ve Dilim 9b açık soru 5).
-- `chisq_indep`: yukarıdaki `make_table()` üreticisi ve `w_max()` kontrolü; `rows`/`cols` plandan.
-- `reg_partial` `simulate`: `tested` yordayıcıya `effect`'ten türetilen ΔR² paylaştırılır: `r2_change` girdisinde ΔR² doğrudan ve kovaryat R² `r2_covariates`; `f2` girdisinde güç yalnız f2'ye bağlı olduğundan kovaryat R² = 0 ve ΔR² = f2 / (1 + f2) alınır. `simulate` bunları `effect_type`, `effect` ve `r2_covariates` alanlarından türetir; 9b'ye ek alan gerekmez. Kovaryat R² kovaryat sütunlarına eşit paylaştırılır.
-- Süre: 10.000 tekrar `lm`/QR ile ~4 s (denendi: `reg_overall` 3,9 s), ki-kare ~0,3 s.
+1. **`R/engine.R`:** `engine_power_chisq(n, w, df, alpha)` = `pwrss::power.chisq.gof(...)$power`; `engine_power_reg(n, r2, k, alpha, tested = k)` = `pwrss::power.f.reg(...)$power`.
+2. **`R/tests.R`:**
+   - `chisq_indep$simulate`: `make_table(rows, cols, w)`, `rmultinom`, `chisq.test(correct = FALSE)`. `w >= w_max(rows, cols)` ise `err_sim_table` (`>=`: w_max'ta en küçük hücre kayan noktada negatif çıkabiliyor, 5x5'te `-7e-18`).
+   - `reg_overall$simulate` ve `reg_partial$simulate`: `plan$predictor_type` okunur. `fixed`'de X çağrı başına bir kez kurulur, `random`'da her tekrarda `rnorm`. F testi `qr` artıklarından, p değeri `pf` ile.
+   - `simulate(n, plan)` imzası değişmez. `simulate_power()` seçimi plan kopyasına yazar (`plan$predictor_type <- predictor_type`); 11a'nın beş fonksiyonu dokunulmadan kalır.
+   - Başlık yorumu (`R/tests.R:23-24`, "only the five tests") güncellenir.
+3. **`R/random_predictors.R`:** yeni `dmar_power(r2, k, n, alpha)`. Değer `r$value[r$term == "actual_power"]` (test-random-x.R:17 gibi). `random_predictor_n` ile aynı koruma: `has_dmar()`, `n > RANDOM_N_MAX`, `tryCatch` (hata ya da uyarı). Sorun olursa `NULL`.
+4. **`R/simulate.R`:**
+   - `predictor_type = c("fixed", "random")`, `match.arg` yerine `check_choice(..., exact = TRUE)`. Regresyon dışı testte `"random"` → `err_sim_predictor_type`.
+   - En küçük n: regresyonda `max(spec$min_n, plan$predictors + 2)` (en az 1 artık serbestlik derecesi). Yoksa n 5, 10 yordayıcıda F NaN olur ve güç sessizce 0 çıkar.
+   - Analitik güç ve durum:
 
-## Review Focus
+     | Durum | `power_analytic` | `reference` | `status` | not |
+     |---|---|---|---|---|
+     | `fixed` (tüm testler) | pwrss | `"pwrss"` | 11a kuralı | - |
+     | `reg_overall` + `random`, DMAR var | DMAR | `"dmar"` | `planned = FALSE` | `random` |
+     | `reg_overall` + `random`, DMAR yok/kullanılamıyor | pwrss | `"pwrss"` | `NA` | `random_no_dmar` |
+     | `reg_partial` + `random` | pwrss | `"pwrss"` | `NA` | `random_partial` |
 
-- `pass` ve `diff` alanı modlara göre doğru (`random` → `pass` = `NA`); 11a testleri değişmez.
-- `err_sim_table` (w = .5, 5x5; bu örüntüde `w >= w_max` = .5) ham `rmultinom` hatası yerine okunur mesaj; `w_max` değerleri (1, .8165, .6667, .6086, .5) testte sabitlenir.
-- `reg_partial` simülasyonu, 9b'nin kısmi R² dönüşümünden **bağımsız** kurulur (aksi hâlde dönüşüm yanlışsa test de yanlış geçer; Dilim 2 dersi).
-- `predictors = "random"` ve `n` küçük/büyük R²'de fark raporlanır, `pass` yok.
-- Hata: `predictors` verilen ama regresyon olmayan testte `err_sim_predictors`.
+   - Sonuç nesnesine `predictor_type` ve `reference` alanları.
+   - `print`: `reference == "dmar"` ise `sim_analytic_dmar`, değilse `sim_analytic`.
+   - `err_sim_unsupported` ve `spec$simulate` NULL kontrolü silinir: desteklenmeyen test kalmaz.
+   - Roxygen: `@param plan` (sekiz test), `@param n` (ki-kare ve regresyonda toplam n), yeni `@param predictor_type`, `@return` (yeni alanlar), `@details` warn listesine büyük w'li küçük ki-kare. `man/` `devtools::document()` ile yenilenir.
+5. **`R/validate.R` `check_simulation()`:**
+   - Not izin listesi: `adjust, n, reps, random, random_no_dmar, random_partial`.
+   - `identical(is.na(st), x$reps < 10000)` kuralı şuna döner: `is.na(st)` ancak ve ancak `reps < 10000` ya da notlarda `random_no_dmar`/`random_partial` var.
+   - `predictor_type` `"fixed"`/`"random"`; `"random"` yalnız regresyonda. `reference` `"pwrss"`/`"dmar"`.
+6. **CSV (en + tr):** `err_sim_table` (bu tablo için w_max'ı gösterir; sınırın planın değil simülasyon örüntüsünün olduğunu söyler), `err_sim_predictor_type`, `sim_analytic_dmar`, `sim_note_random`, `sim_note_random_no_dmar` ("DMAR kurulu değil ya da bu n'de kullanılamıyor"), `sim_note_random_partial`, `sim_n_chisq_indep`, `sim_n_reg_overall`, `sim_n_reg_partial` (toplam n). `sim_explain`: "pwrss formülü" yerine "formül (pwrss; rastgele yordayıcıda DMAR)", "normal (ya da binom)" yerine "normal, binom ya da multinom". `err_sim_unsupported` silinir.
 
----
+## Testler (önce yazılır, `tests/testthat/test-simulate.R`'a eklenir)
 
-### Task 1: üç test için `simulate` ve `power`
+- Analitik güç referansları, tolerans 1e-3: `pwr::pwr.chisq.test` (3x3 n 133, 2x2 n 88); `pwr::pwr.f2.test` (R² .13, k 3, n 77); `reg_partial` için 9b'deki gibi ölçeklenmiş `pwr.f2.test`.
+- `sim_cases()`'e ekle (`fixed`, `pass`): üç ki-kare, üç `reg_overall`, `reg_partial` r2_change ve `reg_partial` f2.
+- `warn_cases()`'e ekle: ki-kare 2x3, w .8, n 16.
+- `random`, DMAR varsa (`skip_if_not(has_dmar())`): R² .30, k 3, n 30 için `reference == "dmar"`, `status == "pass"`, `"random"` notta, `power_analytic` pwrss gücünden en az .02 düşük.
+- `random`, DMAR yok (`local_mocked_bindings(has_dmar = function() FALSE)`): `status` NA, `random_no_dmar` notu, `power_analytic` pwrss.
+- `reg_partial` + `random`: `status` NA, `random_partial` notu.
+- `w_max` sabit değerleri; 5x5, w .5 planında `err_sim_table`.
+- `t_independent` + `"random"` → `err_sim_predictor_type`; iki dilde.
+- En küçük n: `reg_overall`, `predictors = 10`, `n = 11` → `err_sim_n` (12 gösterir); `n = 12` çalışır.
+- Sabit X üreticisi: sütunlar dik, ortalama 0, `sum(x^2) = n`.
+- Varsayılan çağrı (`simulate_power(plan)`, 10.000 tekrar) her yeni test için yazdırılabilir; çıktıda toplam n birimi, DMAR vakasında `sim_analytic_dmar` satırı.
+- `check_simulation`: elle bozulmuş `predictor_type`, `reference` ve not reddedilir.
 
-**Files:**
-- Modify: `R/tests.R`, `R/engine.R`, `R/simulate.R` (`predictors` argümanı), `inst/i18n/messages.csv`
-- Create: `tests/testthat/test-simulate-more.R`
+**Önce tohumla doğrula:** Uygulayıcı her `pass` ve `warn` vakasını önce `seed = 11` ile çalıştırır. En dar vaka 3x3 ki-kare (+.0102, MC SE ~.004). Bir vaka beklenen sonucu vermezse tohum değiştirilmez, tolerans genişletilmez: dur ve kullanıcıya getir.
 
-**Interfaces:**
-- `engine_power_chisq(n, w, df, alpha)` (`pwrss::power.chisq.gof(w, df, n)$power`), `engine_power_reg(n, r2_partial, k, tested, alpha)` (`pwrss::power.f.reg(...)$power`).
-- `test_spec$chisq_indep|reg_overall|reg_partial$power(n, plan)` ve `$simulate(n, plan, predictors)`.
-- `simulate_power(plan, n = NULL, reps = 10000, seed = NULL, predictors = c("fixed", "random"))`.
+**Değişecek iki mevcut test (kullanıcı onayı gerekir):**
+- "power and simulate exist for the five tests of slice 11a only" artık sekiz testi bekler.
+- `err_sim_unsupported` vakası (ki-kare) silinir.
 
-**CSV:** `err_sim_table`, `err_sim_predictors`, `sim_note_random` (rastgele yordayıcıda fark yöntem farkıdır, açıklama), `sim_title_random`.
+İkisi de 11a'nın sınırını sabitliyordu; 11b bu sınırı kaldırır.
 
-- [ ] **Step 1: Başarısız testleri yaz (`test-simulate-more.R`)**
+## Boyut
 
-```r
-test_that("analytic power matches independent references", {
-  p <- quiet_plan(test = "chisq_indep", effect = 0.3, rows = 3, cols = 3)
-  expect_equal(test_spec$chisq_indep$power(133, p), pwr::pwr.chisq.test(w = 0.3, N = 133, df = 4)$power, tolerance = 1e-3)
-  r <- quiet_plan(test = "reg_overall", effect = 0.13, effect_type = "r2", predictors = 3)
-  expect_equal(test_spec$reg_overall$power(77, r), pwr::pwr.f2.test(u = 3, v = 77 - 3 - 1, f2 = 0.13 / 0.87)$power, tolerance = 1e-3)
-  q <- quiet_plan(test = "reg_partial", effect = 0.10, effect_type = "r2_change", r2_covariates = 0.20,
-                  predictors = 5, tested = 2)
-  f2 <- 0.10 / 0.70                                   # same method: pwr rescaled so lambda = f2 * n (Dilim 9b)
-  expect_equal(test_spec$reg_partial$power(71, q),
-               pwr::pwr.f2.test(u = 2, v = 71 - 6, f2 = f2 * 71 / (71 - 5 + 2))$power, tolerance = 1e-3)
-})
-test_that("simulation agrees with analytic power", {
-  skip_on_cran()
-  for (p in list(quiet_plan(test = "chisq_indep", effect = 0.3, rows = 3, cols = 3),
-                 quiet_plan(test = "chisq_indep", effect = 0.3, rows = 2, cols = 2),
-                 quiet_plan(test = "reg_overall", effect = 0.13, effect_type = "r2", predictors = 3),
-                 quiet_plan(test = "reg_partial", effect = 0.10, effect_type = "r2_change",
-                            r2_covariates = 0.20, predictors = 5, tested = 2))) {
-    s <- simulate_power(p, reps = 10000, seed = 1)               # fixed predictors (same method)
-    expect_lte(abs(s$power_sim - s$power_analytic), 0.02); expect_true(s$pass)
-  }
-})
-test_that("random predictors are reported, not judged", {
-  skip_on_cran()
-  p <- quiet_plan(test = "reg_overall", effect = 0.30, effect_type = "r2", predictors = 3)
-  s <- simulate_power(p, reps = 10000, seed = 1, predictors = "random")
-  expect_true(is.na(s$pass)); expect_gt(s$power_analytic - s$power_sim, 0.02)  # known gap at small n, large R2 (.043 in 4000 reps)
-})
-```
+Kod ~115 satır (`tests.R` ~45, `simulate.R` ~30, `engine.R` ~8, `random_predictors.R` ~10, `validate.R` ~8, `print` dalı dahil). 150 sınırının altında, tek dal.
 
-`err_sim_table` testi: `chisq_indep` w .5, 5x5 plan → `simulate_power` okunur hata. `predictors = "random"` `t_independent`'te `err_sim_predictors`. Fixed-X üretici kendi başına: kurulan `X`'in sütunları dik ve `sum(x^2) = n` (testte doğrudan işlev çağrısı).
+## Denenmeyenler
 
-- [ ] **Step 2: Çalıştır, başarısız olduğunu gör**
-
-Run: `& "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::test(filter = 'simulate')"`
-Expected: FAIL.
-
-- [ ] **Step 3: Kodu ve CSV'yi ekle**
-
-- [ ] **Step 4: Tüm kapıları çalıştır**
-
-Run: `& "D:\R-4.6.1\bin\Rscript.exe" -e "devtools::test()"` ve `powershell -ExecutionPolicy Bypass -File dev\check.ps1`
-Expected: `FAIL 0 | WARN 0`, `Status: OK`.
-
-- [ ] **Step 5: Dilim sonu**
-
-Bağlamsız inceleme, genel inceleme, kullanıcıya fixed/random farkını anlama sorusu, `docs/devlog.md`. Commit yalnız istenirse (`feat: simulate chi-square and regression plans`).
-
-## Tahmini boyut
-
-| Dosya | Satır |
-|---|---|
-| `R/tests.R` (3 test × `power`, `simulate`; `make_table`, `w_max`, fixed-X üretici) | ~45 |
-| `R/engine.R` (`engine_power_chisq`, `engine_power_reg`) | ~10 |
-| `R/simulate.R` (`predictors` argümanı, mod ayrımı) | ~10 |
-| **Kod toplamı** | **~65** |
-| `tests/testthat/test-simulate-more.R` | ~55 (kod sayılmaz) |
-
-Tek dal, bölme gerekmez.
-
-## Önceki planlarla çelişkiler
-
-- **Dilim 9:** "simülasyon (n = 77, R² .13) ampirik .782 / analitik .800, fark .018, sınır .02 altında" tek durumdur; 4.000 tekrarla R² .13, k 3, n 77 için .788 çıktı (fark .012), ama R² .30, k 3, n 30'da fark .043. Yani Dilim 9'un "rastgele yordayıcıyla da sınırın altındayız" genellemesi her durumda tutmuyor. Bu plan fixed/random ayrımını getirir.
-- **Dilim 9b:** `reg_partial` simülasyonu mevcut plan alanlarından (`effect_type`, `effect`, `r2_covariates`) gerçek ΔR² ve kovaryat R²'yi türetir; 9b'ye ek alan gerekmez.
-- **Spec §6:** "Yuvarlanmış n ile veri üretilir, planlanan test çalıştırılır": regresyonda "planlanan test" F testidir ve veri üretimi (sabit/rastgele) spec'te belirtilmemiş; ek karar yukarıda.
-
-## Açık sorular
-
-1. **Varsayılan mod:** `predictors = "fixed"` varsayılan olsun mu (öneri, `pass` anlamlı olur), yoksa kullanıcının gerçek durumu olan `"random"` mı (`pass` anlamsız kalır)?
-2. **Rastgele yordayıcı eşiği:** Küçük n ve büyük R²'de fark > .02. Plan uyarısı ister misin (örn. R² > .25 ve n < 50), ya da n'ye pay? Dilim 9 kararı 4 (yalnız not) ile çelişir, onu yeniden açar.
-3. **Ki-kare tablo örüntüsü:** Eşit marjinaller ve tek örüntülü `M` kullanıyorum; gerçek tablolar farklıdır ama Cohen w yalnız ncp'yi belirler. Kullanıcıya "eşit marjinaller" notu yazılsın mı? Büyük w'de (w > en büyük uygun değer) hata mı veriyoruz (öneri), yoksa başka örüntüye mi düşelim?
-4. **Küçük beklenen hücre sayısı:** 3x3, w .3, n 133'te fark .012 (sınır .02'nin altı). Daha büyük tablolar ve düşük w ile beklenen hücre sayısı < 5 olduğunda fark artabilir (Dilim 8 beklenen hücre uyarısı eklememişti). 13b ızgarasında ölçülür; bu dilimde yalnız sabit vakalar.
+- Büyük tablolarda süre: `rows`/`cols` 1000'e kadar izinli; 10.000 tekrarlı `chisq.test` çok yavaş olabilir. Bu dilimde sınır eklenmez.
+- DMAR kurulu olmayan ortamda `check`: 9c'deki gibi DMAR gizlenip denenecek.
