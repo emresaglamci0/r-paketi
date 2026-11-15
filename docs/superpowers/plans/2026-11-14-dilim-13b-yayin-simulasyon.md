@@ -1,134 +1,108 @@
-# Dilim 13b: yayın öncesi simülasyonla güç sınaması (tüm testler) Implementation Plan
+# Dilim 13b: yayın öncesi simülasyon taraması (tüm testler)
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development veya superpowers:executing-plans. Adımlar `- [ ]` ile izlenir.
 
-**Önkoşullar:** Dilim 9, 9b, 10, 11a ve 11b `main`'de (`simulate_power` her `test_spec` girdisini kapsamalı). Dilim 13a'ya bağlı değildir; 13a'nın kapısıdır (yayın bunun geçmesini ister).
+**Durum:** 2026-11-15'te 11b sonrası `main`'e (`2b723f0`) göre yeniden yazıldı. Eski taslak `simulate_power(predictors = ...)` ve kendi `classify` etiketlerini varsayıyordu; ikisi de artık yanlış.
 
-**Goal:** Spec §8 madde 13: "yayından önce tüm testler için simülasyonla güç testi yapılır (ör. regresyonda rastgele yordayıcılarla ampirik güç)". Her `test_spec` girdisi için rastgele ama tohumlu bir plan ızgarası üretilir, `simulate_power()` ile sınanır, sonuçlar bir tabloya yazılır ve bilinen yöntem farkları ile açıklanamayan sapmalar ayrılır. Açıklanamayan sapma varsa dilim durur, kullanıcıya getirilir.
+**Amaç:** Spec §8 madde 13: "yayından önce tüm testler için simülasyonla güç testi". Her `test_spec` testi için tohumlu rastgele bir plan ızgarası `simulate_power()` ile sınanır. Sonuç bir CSV ve özet tabloya yazılır. 11a/11b yalnız bilinen 1-3 vakayı sınıyor; 13b bilinmeyen bileşimlerde (küçük n, uç etki, çok yordayıcı, büyük tablo) yöntemin sınırını arar. 13a'nın (GitHub yayını) kapısıdır.
 
-**Architecture:** Paket koduna **hiçbir şey eklenmez**. Betik `dev/release-sim.R` (`dev/` `.Rbuildignore`'da, pakete girmez) `plansize::simulate_power` çağırır; çıktı `docs/release-sim/<tarih>.csv` ve özet `docs/release-sim/<tarih>.md`. GitHub'da elle tetiklenen `release-sim.yaml` (`workflow_dispatch`) aynı betiği çalıştırabilir (isteğe bağlı, açık soru 4).
+**Mimari:** Paket koduna ve testlere dokunulmaz. Yeni betik `dev/release-sim.R` (`dev/` `.Rbuildignore`'da) yalnız `plan_study()` ve `simulate_power()` çağırır. Sınıflandırma için kendi kuralını yazmaz: `simulate_power()`'ın `status` alanını kullanır (spec §6 kuralı orada, 11a/11b testleriyle korunuyor). Çıktı `docs/release-sim/2026-11-15.csv` ve `.md`.
 
-**Tech Stack:** R 4.6.1, plansize (yerel), pwrss 1.3.3, pwr (bağımsız analitik referans, `Suggests`).
+**Spec:** §6 (simülasyon ve çelişki kuralı), §8 madde 13.
 
-**Spec:** `docs/superpowers/specs/2026-11-09-orneklem-planlama-paketi-design.md` (§6 simülasyon kuralı ve çelişki kuralı, §8 madde 13)
+## Kısıtlar
 
-## Sınır: Dilim 11 / 11b ile 13b ne farklı?
+- `D:\R-4.6.1\bin\Rscript.exe`; `TEMP`/`TMP`/`TMPDIR` = `D:\rtmp`. Çıktı depoda `docs/release-sim/`.
+- R kodu ASCII. Yeni hesap yok.
+- Tolerans .02 genişletilmez. Tohum sonuç beğenilmediği için değiştirilmez.
+- Dal: `slice-13b-release-sim`. Yalnız `dev/` ve `docs/` değişir. Commit yalnız kullanıcı isteyince.
 
-| | Dilim 11a/11b (`devtools::test()`) | Dilim 13b (yayın öncesi) |
+## Ölçülen süreler (2026-11-15, 20.000 tekrar, plan n'sinde)
+
+t 1,7 s; eşli 1,3 s; ANOVA 7,2 s; iki oran 1,4 s; korelasyon 1,4 s; ki-kare 0,8 s; regresyon genel 1,1 s (rastgele 1,4 s); kısmi 1,1 s. Kontrol ajanının en kötü uçları (alfa .01, güç .9): ANOVA f .1 k 8 13 s; `reg_overall` R² .02 k 12 8 s (rastgele 18 s); `reg_partial` ΔR² .01, 12'de 11 13 s (rastgele 26 s). Koşu sayısı 8 test × 28 = 224, artı 56 rastgele regresyon = **280 koşu, ~15-25 dk**. 100.000 tekrarlı yeniden koşu plan başına en çok ~130 s. Yerel koşu yeterli.
+
+## Izgara (tohum 20261115, test başına 25 rastgele plan + 3 elle seçilmiş kenar vaka)
+
+Her plan `effect_basis = "pilot"`, kayıp 0, DEFF 1 (simülasyon bunları kapsamaz). Güç ∈ {.8, .9}, alfa ∈ {.05, .01}; yönlü testlerde yön ∈ {iki, tek}.
+
+| Test | Rastgele aralık | Kenar vakalar |
 |---|---|---|
-| Ne | `simulate_power()` işlevi + her test için **sabit, bilinen** 1-2 vaka | Her test için **rastgele, tohumlu** plan ızgarası |
-| Tekrar | 10.000 | 20.000 |
-| Nerede | `tests/testthat/`, `skip_on_cran()` | `dev/release-sim.R`, testthat dışı, `R CMD check` dışı |
-| Ne zaman | her `devtools::test()` | elle, yayından önce (ve simülasyon/motor kodu değişince) |
-| Başarısızlık | test kırmızı | rapor satırı; açıklanamayan sapma = dur |
-| Süre | ~25-40 s | ~40-60 dk |
-| Çıktı | geçti/kaldı | CSV + özet tablo (kıyas tablosu, spec §11) |
+| `t_independent` | d ∈ [.15, 1.5] log-düzgün | d 1.5 (küçük n), d .15 (büyük n), tek yönlü d .8 |
+| `t_paired` | d ∈ [.2, 1.2], r ∈ [-.3, .9] | r .9 d .6, r -.3, d 1.2 r .5 |
+| `anova_oneway` | f ∈ [.1, .6], k ∈ 2..8 | k 2, k 8 f .6, f .1 |
+| `prop_two` | p1, p2 ∈ [.05, .95], \|fark\| ≥ .08 | .05/.01 tek yönlü (bilinen warn), .95/.85, .5/.4 |
+| `cor_pearson` | \|r\| ∈ [.1, .8], işaret rastgele | r .8 (bilinen warn), r -.5 tek yönlü, r .1 |
+| `chisq_indep` | rows, cols ∈ 2..5; w ∈ [.1, .9 × w_max] | 2x2 w .5, 5x5 w .1, 2x3 w .8 (bilinen warn) |
+| `reg_overall` | R² ∈ [.02, .4], predictors ∈ 1..12 | R² .4 k 1, R² .02 k 12, R² .3 k 3 |
+| `reg_partial` | ΔR² ∈ [.01, .2], kov. R² ∈ [0, .3], predictors ∈ 2..12, tested ∈ 1..predictors-1, ΔR² + kov. ≤ .6; her 5 plandan biri f2 girdisi | tested 1 k 2, tested 11 k 12, kov. 0 |
 
-Kısaca: 11 işlevin ve **bilinen** vakaların doğruluğunu CI'da korur; 13b **bilinmeyen** parametre bileşimlerinde (küçük n, uç etki, çok yordayıcı, büyük tablo) yöntemin gerçek sınırını bulur. 13b testthat'a girmez: yavaş, rastgele ve "bulgu üretir", geçti/kaldı vermez.
+- Regresyon planları iki kez koşulur: `predictor_type = "fixed"` ve `"random"`.
+- `w_max` paket içi yardımcıdır: betik `plansize:::w_max` ile çağırır.
+- `reg_partial` f2 girdisi: çekilen ΔR² ve kov. R²'den türetilir (kısmi R² = ΔR²/(1 − kov.), f2 = kısmi/(1 − kısmi)). Böylece yalnız girdi yolu değişir.
+- Kenar vakalar alfa .05, güç .8 ile sabittir ve çözülebilir olmalıdır. Kontrol ajanı eşli r .9, d ≥ 1'in pwrss'te "n 4'ün altında" hatası verdiğini buldu; eşli kenar vakası r .9, d .6 olur. Uygulayıcı her kenar vakanın `plan_study()`'den geçtiğini öz-sınamada doğrular. Geçmeyen kenar vaka çıkarsa durur ve rapor eder.
+- **Atlanan planlar:** `plan_study()` hata verirse satır `skipped` olarak, hata metniyle yazılır. Sessizce kaybolmaz. Hata metni pwrss'in çözülemeyen tasarım mesajlarından (`err_infeasible*`) biri değilse betik durur: bu, argüman kurucusunda hata demektir (ör. ANOVA'ya `alternative` geçmek). Bir testin rastgele planlarının %20'sinden fazlası atlanırsa da durur.
+- **Tohumlar:** plan i'nin tohumu 20261115 + i, yeniden koşunun tohumu plan tohumu + 1.000.000. İkisi de tamsayı aralığında.
 
-## Global Constraints
+## Sınıflandırma
 
-- Rscript yolu: `D:\R-4.6.1\bin\Rscript.exe`. `TEMP`, `TMP`, `TMPDIR` = `D:\rtmp`. Çıktı D sürücüsünde (depoda `docs/release-sim/`).
-- R kodu ASCII. Hesap `pwrss`'ten (analitik) ve `stats` testlerinden (simülasyon); yeni güç motoru yok.
-- Kural (spec §6): `|ampirik - analitik| <= .02` ve `ampirik >= hedef - .02`. **Tolerans genişletilmez.** Aşım: önce yöntem farkı mı bak (Dilim 7 Fisher z, Dilim 9b rastgele yordayıcı, ki-kare küçük hücre); açıklanırsa tabloya "bilinen yöntem farkı" olarak yazılır, açıklanamıyorsa dur.
-- Çoklu karşılaştırma: ~230 plan, 20.000 tekrar (SE ≤ .0035). Gerçek fark sıfırken bir planın |fark| > .02 çıkma olasılığı 5,7 SE ≈ 1e-8; yani tek bir aşım rastlantı sayılmaz. Gerçek fark .01 ise aşım olasılığı ≈ %0,2/plan, 230 planda ≈ %35'e yaklaşır; bu yüzden aşan planlar **yeniden** (farklı tohumla, 100.000 tekrar) koşulur; kalıcı aşım gerçek sapmadır.
-- Sonuç dosyaları depoya girer (`docs/` build'e girmez); commit yalnız kullanıcı onayından sonra.
-- Dal: `slice-13b-release-sim` (yalnız `dev/` ve `docs/` değişir).
+`simulate_power()` sonucu doğrudan kullanılır:
 
-## Doğrulanmış gerçekler (11a/11b/9b çalışmalarından)
+| `status` | Anlamı | Rapor etiketi |
+|---|---|---|
+| `pass` | formül bu n'de tutuyor | `ok` |
+| `warn` | ampirik güç formülden > .02 yüksek; plan güvenli, formül tutucu | `conservative` |
+| `fail` | açıklanmamış sapma | `fail` → yeniden koşu |
+| `NA`, not `random_partial` | rastgele `reg_partial`: karşılaştırılacak formül yok | `info_random` |
+| `NA`, not `random_no_dmar` | rastgele `reg_overall`, DMAR kullanılamadı (yok, hata, uyarı ya da n > 1e5) | `info_no_dmar` |
+| `NA`, not `reps` | 10.000'den az tekrar (yalnız öz-sınamada) | `low_reps` |
 
-- 10.000 tekrarla sabit vakalar ±.02 içinde: bağımsız t d .5 n 64: .8064/.8015; eşli t: .8049/.8078; ANOVA f .25 k 3 n 53: .8026/.8049; iki oran .45/.30 n 163: .7967/.8016; r = .3 n 85: .8016/.8003; ki-kare w .3 3x3 n 133: .8137/.8013 (fark .012; 11b'deki sabit `make_table` örüntüsüyle); 2x2 n 88: .8088/.8035; `reg_overall` .13/3/77 rastgele X: .789/.800.
-- Bilinen sapmalar (13b'de tabloya "yöntem farkı" olarak girecek, **yeni değil**): (1) Pearson r = .8, n = 10: ampirik .869, analitik .828 (fark .041; Fisher z yaklaşımı küçük n'de muhafazakâr); (2) `reg_overall` rastgele yordayıcı R² .30, k 3, n 30: analitik .806, ampirik .762 (fark .043); (3) `reg_partial` rastgele yordayıcı .13/0/3/1/55: .771/.803 (fark .032), .10/.20/5/2/71: .771/.802.
-- Ki-kare üretici: eşit marjinal tabloda `w` üst sınırı tabloya bağlı (2x2: 1.0; 3x3: .667; 5x5: .5); ızgara bu sınırın altında kalır.
-- Süre ölçümleri (10.000 tekrar): t ~0,6 s, eşli ~0,5 s, ANOVA ~8,6 s, iki oran ~0,6 s, r ~0,5 s, ki-kare ~0,3 s, regresyon ~4 s. 20.000 tekrarla ızgara başına ~15-20 dk tahmin; toplam ~40-60 dk (ANOVA ve regresyon baskın).
-- `pwrss` n'si yalnız pwrss için ±1 aynıdır; 13b n'yi değil **güç farkını** kıyaslar.
+Başka bir `NA` durumu betikte hata verir.
 
-## Kararlar (öneri; açık sorulara bak)
+- **Yeniden koşu:** `fail` alan her plan yeni tohumla 100.000 tekrar koşulur. İki satır da CSV'de kalır; karar yeniden koşuya göre verilir. Yine `fail` ise **betik özet yazıp `quit(status = 1)` ile durur, kullanıcıya getirilir.**
+- **Çoklu karşılaştırma:** 280 koşu, 20.000 tekrar (MC SE güç .8-.9'da ≈ .0028, en çok .0035). Gerçek fark .01 olan bir plan rastlantıyla .02'yi en çok %0,2 olasılıkla aşar; gerçek fark 0 ise olasılık yok denecek kadar küçüktür. Yeniden koşu rastlantıyı ayırır. **Sınır:** .02'nin hemen üstündeki gerçek bir sapma (ör. −.021) yalnız yaklaşık yarı yarıya yakalanır (ilk koşuda .64, yeniden koşuda .79). Bu tarama kaba sapmaları bulur; .02 sınırındaki küçük sapmaları kanıtlamaz.
+- **Bilinen `conservative` aileleri (koşudan önce sabit, sonradan gevşetilmez):**
+  - korelasyon: \|r\| ≥ .6 iki yönlü, ≥ .5 tek yönlü (11a);
+  - iki oran: min(p1, p2) ≤ .15 (.13/.05 tek yönlü +.018 ölçüldü);
+  - ki-kare: w / w_max ≥ .45 (kontrol ajanı: 3x3 w .4 +.032, 3x3 w .3 +.020, .9 × w_max'ta her boyut warn).
 
-- **Izgara (tohum 20261114):** her test için 25 rastgele plan; parametre aralıkları (n'nin 6 ile 2000 arasında kalacağı etki aralıkları):
-  - `t_independent`: d ∈ [0.15, 1.5] (log-düzgün), güç ∈ {.8, .9}, alfa ∈ {.05, .01}, yön ∈ {iki, tek}.
-  - `t_paired`: d ∈ [0.2, 1.2], r ∈ [-0.3, 0.9].
-  - `anova_oneway`: f ∈ [0.1, 0.6], k ∈ 2..8.
-  - `prop_two`: p1, p2 ∈ [.05, .95], |fark| ≥ .08.
-  - `cor_pearson`: |r| ∈ [.1, .8], işaret rastgele, yön ∈ {iki, tek}.
-  - `chisq_indep`: rows, cols ∈ 2..5, w ∈ [.1, w_max(rows, cols) × .9] (`w_max` Dilim 11b'de tanımlıdır: `plansize:::w_max`).
-  - `reg_overall`: R² ∈ [.02, .4], predictors ∈ 1..12.
-  - `reg_partial`: ΔR² ∈ [.01, .2], kovaryat R² ∈ [0, .3], predictors ∈ 2..12, tested ∈ 1..predictors-1; ΔR² + kovaryat ≤ .6.
-  - Her plan `effect_basis = "pilot"`; kayıp/DEFF 0 (simülasyon bunları kapsamaz).
-- **Regresyon iki kez:** `predictors = "fixed"` (**pass ölçütü**, aynı yöntem) ve `"random"` (**yalnız rapor**, fark ve eğilim: hangi n/R²/k'da > .02).
-- **Rapor:** CSV sütunları `test, params, n, reps, power_sim, ci_lo, ci_hi, power_analytic, diff, status` (`status` ∈ `ok`, `known_method_gap`, `unexplained`, `info_random`). `known_method_gap` yalnız yukarıdaki üç belgelenmiş aile için ve yalnız tanımlı koşulda (örn. cor n < 30; `reg_*` rastgele). Özet `.md`: test başına en büyük |fark|, aşan sayısı, bilinen/bilinmeyen, süre.
-- **Sert durak:** `unexplained` ≥ 1 ve 100.000 tekrar ile tekrarlayınca sürerse: dur, çelişki kuralı gereği kullanıcıya getir (tolerans genişletme yok).
-- **Yeniden üretilebilirlik:** betik `sessionInfo()` ve paket sürümlerini (`pwrss`, `plansize`) CSV başlığına yazar.
+  Bu ailelerin dışında çıkan her `conservative` özette ayrı işaretlenir ve kullanıcıya bulgu olarak getirilir. Dilimi durdurmaz.
 
-## Review Focus
+## Çıktı
 
-- Betik paket koduna dokunmuyor; `git diff` yalnız `dev/` ve `docs/release-sim/`.
-- `known_method_gap` etiketi koşulu açıkça kontrol ediyor (örn. yalnız cor ve n < 30), geniş bir "hepsini affet" değil.
-- Aynı tohumla betik iki kez aynı CSV'yi üretir (ilk 3 plan için kontrol).
-- Aralıklar uç değerleri (n 6 civarı, 2000 üzeri) kapsıyor; `plan_study` hata verirse (infeasible) o plan atlanır ve `skipped` olarak sayılır, sessizce kaybolmaz.
-- Özet "bulgu" ve "sınır" ayrımı doğru: hiçbir sapma sessizce `ok` yazılmamış.
+- **CSV sütunları:** `test, predictor_type, params, n, reps, seed, power_sim, ci_lo, ci_hi, power_analytic, reference, diff, target, status, label`.
+- CSV'de yorum satırı ve zaman damgası yok; `params` sabit biçimde yazılır. Aynı tohum aynı CSV'yi verir.
+- **Özet `.md`:** `sessionInfo()` özeti; `pwrss`, `plansize` ve `DMAR` sürümleri; test başına koşu sayısı, en büyük \|fark\|, etiket sayıları, `conservative` listesi (aile içi ve dışı), atlananlar ve hata metinleri, yeniden koşu sonuçları, süre.
 
----
+## Adımlar
 
-### Task 1: `dev/release-sim.R` ve ilk koşu
+- [ ] **Step 1: Öz-sınama önce (`dev/release-sim-selftest.R`).** Betik fonksiyonlarını kaynaklar. Şunları sınar:
+  - Izgara üreticisinin aynı tohumla aynı planları verdiğini.
+  - Her test için en az 1 plan ürettiğini.
+  - `label()` eşlemesinin tüm satırları doğru çevirdiğini ve tanımsız `NA`'da hata verdiğini.
+  - Her kenar vakanın `plan_study()`'den geçtiğini (sıfır atlama).
+  - **Bilerek bozma, betiğin kendi mantığında:** simülasyon fonksiyonu yerine `status = "fail"` döndüren sahte bir fonksiyon verilir. Betik o planı yeniden koşar, kalıcı fail'i özette listeler ve `quit(status = 1)` ile durur. Satır sayısı plan sayısına eşittir. (Yalnız `power_analytic`'i değiştirmek `status`'u değiştirmez; o sınama hiçbir şeyi yakalamazdı. Dilim 2 ve 6 dersi.)
+  - Atlama kuralı: beklenmeyen hata metni durdurur.
+  - Küçük koşu (`reps = 500`, test başına 2 plan) iki kez çalıştırılır ve iki CSV `identical()`.
+- [ ] **Step 2:** öz-sınamayı çalıştır, başarısız olduğunu gör.
+- [ ] **Step 3:** `dev/release-sim.R`'ı yaz; öz-sınama geçsin.
+- [ ] **Step 4: Gerçek koşu.** Depo kökünden, arka planda: `$env:TEMP='D:\rtmp'; $env:TMP='D:\rtmp'; $env:TMPDIR='D:\rtmp'; & "D:\R-4.6.1\bin\Rscript.exe" dev\release-sim.R 20000 25 20261115`. Başka `check` ya da test turu ile aynı anda koşulmaz (Dilim 11a dersi).
+- [ ] **Step 5:** Kalıcı `fail` varsa dur. Sonra `devtools::test()` ve `dev\check.ps1` (paket değişmese de kural). Bağlamsız inceleme. Kullanıcıya Türkçe anlatım; 2-3 konsol örneği ve bilerek hatalı bir girdi (ör. eşli r .9, d 1.2 planı). Sonuçları kullanıcıyla okuma, `docs/devlog.md`.
 
-**Files:**
-- Create: `dev/release-sim.R`, `docs/release-sim/<tarih>.csv`, `docs/release-sim/<tarih>.md`, isteğe bağlı `.github/workflows/release-sim.yaml`
-- Modify: yok (paket kodu ve testler değişmez)
+## Boyut
 
-**Interfaces:** `Rscript dev/release-sim.R [reps] [plans_per_test] [seed]` (varsayılan 20000, 25, 20261114); yalnız `plansize::plan_study`, `simulate_power` ve `stats` çağırır.
+`dev/release-sim.R` ~120 satır, `dev/release-sim-selftest.R` ~40 satır. Paket kodu 0. Tek dal.
 
-- [ ] **Step 1: Betik için önce küçük, hızlı doğrulama testi (`tests/testthat` DIŞINDA, `dev/release-sim-selftest.R`)**
+**Gerçekleşen (2026-11-15):** iki betik inceleme düzeltmeleriyle 287 satır (197 + 90). Kullanıcı ~150 hedefinin bu dilimde aşılmasını kabul etti (kod paket dışında, `dev/` altında). Gerçek koşu 48,7 dk sürdü; tahmin (~15-25 dk) yaklaşık 2 kat düşüktü. Kalıcı fail çıkış kodu 2'dir (1, herhangi bir R hatasıdır). Çıktı yolu koşu tarihinden gelir. İlk koşudan sonra özet, yeniden koşu yapılmadan aynı CSV'den yeniden üretildi.
 
-`reps = 500`, `plans_per_test = 2` ile betiğin çalıştığını, CSV sütunlarını ve `status` mantığını sınar: bilinen kenar (`cor_pearson` r .8 → `known_method_gap`, `reg_overall` random → `info_random`), kasıtlı bozulmuş analitik güç (+.05 ekle) → `unexplained` (betiğin kuralı gerçekten yakaladığını gösteren "bilerek bozma" denemesi, Dilim 2 dersi).
+## Kararlar (kullanıcı onayladı, 2026-11-15)
 
-```r
-# expect_status() style self-test, run by hand
-stopifnot(classify(power_sim = 0.869, power_analytic = 0.828, test = "cor_pearson", n = 10) == "known_method_gap")
-stopifnot(classify(0.80, 0.85, "t_independent", 64) == "unexplained")
-stopifnot(classify(0.762, 0.806, "reg_overall", 30, mode = "random") == "info_random")
-stopifnot(classify(0.801, 0.800, "t_independent", 64) == "ok")
-```
+Yeniden koşu: `fail` → farklı tohum, 100.000 tekrar; kalıcı `fail` → dur.
 
-- [ ] **Step 2: Çalıştır, başarısız olduğunu gör**
+Koşu sonrası (kullanıcı): `prop_two`'da aile dışı 3 `conservative` satırın hepsinde max(p) ≥ .85. Etiketler değişmez; özet bunu min(p) ≤ .15 ailesinin olası aynası (p ↔ 1 − p) olarak, varsayım diye yazar. Aile kuralı sonradan genişletilmez.
 
-Run: `& "D:\R-4.6.1\bin\Rscript.exe" dev\release-sim-selftest.R`
-Expected: FAIL (betik yok).
-
-- [ ] **Step 3: Betiği yaz**
-
-- [ ] **Step 4: Gerçek koşu**
-
-Run: `& "D:\R-4.6.1\bin\Rscript.exe" dev\release-sim.R 20000 25 20261114` (arka planda; ~40-60 dk).
-Expected: CSV ve özet yazılır; `unexplained` sayısı 0 (değilse Step 5 durak).
-
-- [ ] **Step 5: Durak değerlendirmesi ve dilim sonu**
-
-`unexplained` satırları: 100.000 tekrar ve farklı tohumla yeniden koş. Sürerse kullanıcıya getir (tolerans genişletilmez). Sonuçları kullanıcıyla oku: hangi n/etki bileşiminde yöntem sınırı çıktı? Bulgular `docs/devlog.md`'ye ve (kullanıcı isterse) paket belgesine ("küçük n'de yaklaşık" notu) yazılır; belge değişikliği ayrı dilimdir. Commit yalnız istenirse (`docs: add pre-release simulation results`).
-
-## Tahmini boyut
-
-| Dosya | Satır |
-|---|---|
-| `dev/release-sim.R` (ızgara üreticileri, `classify`, döngü, CSV, özet) | ~110 |
-| `dev/release-sim-selftest.R` | ~20 |
-| `.github/workflows/release-sim.yaml` (isteğe bağlı) | ~25 |
-| **Paket R kodu** | **0** |
-
-150'nin altı; **bölme gerekmez**. Betik şişerse ızgara üreticileri (`grid_<test>`) ayrı dosyaya çıkarılır.
-
-## Önceki planlarla çelişkiler ve bağımlılıklar
-
-- **Dilim 9:** "simülasyon testi bu dilimde yok; yayından önce tüm testler için birlikte yapılır" ile uyumlu; ancak Dilim 9'un ".02 sınırı yeterli" varsayımı rastgele yordayıcıda küçük n/büyük R²'de tutmuyor (fark .043). 13b bu bölgeyi sistematik haritalar ve kullanıcıdan "rastgele yordayıcı uyarısı/payı" kararı (9b açık soru 5, 11b açık soru 2) beklenir.
-- **Spec §6:** simülasyon "en az 10.000 kez"; 13b 20.000 kullanır (SE daha küçük, 230 plan nedeniyle).
-- **Dilim 11:** `simulate_power` imzası (`predictors`) 11b'ye bağlı; 11b yoksa 13b regresyon ve ki-kare satırlarını atlar (rapor "kapsam dışı" yazar), bu da "tüm testler" iddiasını bozar. Önkoşul bu yüzden 11b.
-- **Dilim 10:** `plan_precision` `test_spec` dışı ve hipotez gücü yoktur; 13b'ye girmez. Kesinlik için ayrı bir simülasyon (oranın güven aralığı yarı genişliği ve kapsama olasılığı, Wald'ın p .5 dışında bozulması) **yapılmıyor**; kullanıcıya soru (açık soru 3).
-
-## Açık sorular
-
-1. **Süre ve yer:** ~40-60 dk yerel koşu kabul mü, ya da `workflow_dispatch` ile GitHub Actions'ta mı koşsun (bu 13a'ya ve GitHub deposuna bağlı)?
-2. **Rastgele yordayıcı bulguları:** `info_random` farkları .02'yi aşarsa (beklenen) ne yapılsın: yalnız belge (Dilim 9 kararı 4), plan çıktısında uyarı, ya da n'ye pay? Kural "toleransı genişletme" bunu yöntem farkı sayıp `pass`'ten ayırıyor; bu ayrımı kullanıcı onaylamalı.
-3. **Kesinlik (Dilim 10) kapsama sınaması:** Wald aralığının gerçek kapsama olasılığı p .5 dışında ve küçük n'de bozulur. Simülasyonla `plan_precision` için kapsama testi (yeni küçük işlev ya da betik) eklensin mi? Spec yalnız "güç testi" diyor; öneri: hayır, belgede Wald sınırı yazılı.
-4. **Izgara büyüklüğü:** 25 plan/test yeterli mi? Daha çok plan = daha uzun süre. Uç kenarlar (cor n < 30 ya da küçük hücreli ki-kare) için ayrıca elle seçilmiş vakalar eklensin mi (öneri: evet, test başına 3 kenar vaka)?
-5. **Sonuç dosyası yeri:** `docs/release-sim/` (build dışı, depoda) uygun mu, yoksa vinyet "Accuracy" için pakete (`inst/`) kopyalansın mı (13a açık soru 5)?
-6. **`known_method_gap` kuralı:** Fisher z için "n < 30", rastgele yordayıcı için "mod = random", ki-kare için "en küçük beklenen hücre < 5" eşikleri benim varsayımım (ölçüm kısmi: r .8 n 10 ve reg R² .30 n 30 ölçüldü; ki-kare küçük hücre ölçülmedi). Eşikleri ilk koşunun verisinden mi belirleyelim, yoksa önceden mi sabitleyelim (öneri: önceden sabitle, sonradan gevşetme)?
+1. **Yer:** yerel koşu (~15-25 dk). GitHub Actions'a `workflow_dispatch` akışı eklenmez; gerekirse 13a'da.
+2. **Izgara:** test başına 25 rastgele + 3 kenar vaka.
+3. **Kesinlik (Dilim 10):** Wald aralığının kapsama sınaması yapılmaz. Spec yalnız güç testi diyor; Wald sınırı belgede yazılı.
+4. **Sonuç yeri:** `docs/release-sim/`. Vinyette kıyas tablosu olup olmayacağı 13a'da karar verilir.
+5. **`warn`:** durdurmaz, `conservative` olarak listelenir. Gerekçe: plan güvenli yönde; 11a'da kullanıcı kararı.
+6. **Rastgele yordayıcı bulguları:** yalnız raporlanır. Plan n'sine pay ya da uyarı eklemek ayrı dilim ve kullanıcı kararıdır (9c'de DMAR satırı zaten var).
