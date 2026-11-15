@@ -20,8 +20,8 @@
 #   variant(plan)                msg_for() suffixes, most specific first
 #   check(plan)                  test-specific validity of a plan, TRUE or FALSE
 #   power(n, plan)               analytic power at n (n per group, or total for one-sample tests)
-#   simulate(n, plan)            function() that draws one study and returns its p value; with
-#                                power(), only the five tests of simulate_power() have them
+#   simulate(n, plan)            function() that draws one study and returns its p value;
+#                                regressions read plan$predictor_type ("fixed" or "random")
 
 # Shared by the two t tests: k and effect_type belong to the ANOVA only.
 reject_anova_args <- function(a, given) {
@@ -59,6 +59,33 @@ t_extra <- function(a) {
 # Direction of a one-sided simulated test: "greater" when the planned effect `sign` is positive.
 sim_alt <- function(plan, sign) {
   if (plan$alternative == "one.sided") (if (sign > 0) "greater" else "less") else "two.sided"
+}
+
+# Chi-square cells: equal margins plus an outer-product pattern give Cohen's w exactly.
+# The cells stay positive only below w_max, a limit of this pattern, not of the table.
+chisq_pattern <- function(rows, cols) {
+  m <- outer(seq_len(rows) - (rows + 1) / 2, seq_len(cols) - (cols + 1) / 2)
+  m / sqrt(sum(m^2))
+}
+w_max <- function(rows, cols) 1 / (sqrt(rows * cols) * max(abs(chisq_pattern(rows, cols))))
+make_table <- function(rows, cols, w) 1 / (rows * cols) + w / sqrt(rows * cols) * chisq_pattern(rows, cols)
+
+# Centred orthogonal columns with sum(x^2) = n: the F test's ncp is then f2 * n, as in pwrss.
+fixed_x <- function(n, k) qr.Q(qr(scale(matrix(stats::rnorm(n * k), n), scale = FALSE))) * sqrt(n)
+
+# F test of the first u of k predictors. Signal variances: `sig` for the tested slopes, `cov` for
+# the others; error variance 1. Fixed X is built once per call, random X in every study.
+sim_reg <- function(n, plan, k, u, sig, cov) {
+  b <- c(rep(sqrt(sig / u), u), rep(sqrt(cov / (k - u)), k - u))
+  random <- identical(plan$predictor_type, "random")
+  x0 <- if (!random) fixed_x(n, k)
+  function() {
+    x <- cbind(1, if (random) matrix(stats::rnorm(n * k), n) else x0)
+    y <- drop(x[, -1, drop = FALSE] %*% b) + stats::rnorm(n)
+    rss <- sum(qr.resid(qr(x), y)^2)
+    rss0 <- sum(qr.resid(qr(x[, -(seq_len(u) + 1), drop = FALSE]), y)^2)  # without the tested columns
+    stats::pf((rss0 - rss) / u / (rss / (n - k - 1)), u, n - k - 1, lower.tail = FALSE)
+  }
 }
 
 variant_plain <- function(plan) plan$test
@@ -303,6 +330,14 @@ test_spec <- list(
                         rows = rows, cols = cols, df = as.integer((rows - 1) * (cols - 1))))
     },
     n = function(p) engine_n_chisq(p$effect_test, p$df, p$alpha, p$power),
+    power = function(n, plan) engine_power_chisq(n, plan$effect_test, plan$df, plan$alpha),
+    # >= : at w_max the smallest cell can be a tiny negative number in floating point.
+    simulate = function(n, plan) {
+      r <- plan$rows; cc <- plan$cols; wm <- w_max(r, cc)
+      if (plan$effect >= wm) fail("err_sim_table", r, cc, fmt_num(round(wm, 4)), fmt_num(plan$effect))
+      p <- make_table(r, cc, plan$effect)
+      function() stats::chisq.test(matrix(stats::rmultinom(1, n, p), r), correct = FALSE)$p.value
+    },
     mde = function(n, plan, power) engine_mde_chisq(n, plan$df, plan$alpha, power),
     effect_lines = function(plan) c(
       msg_for("plan_effect", plan$test, format(plan$effect)),
@@ -345,6 +380,10 @@ test_spec <- list(
            extra = list(effect_type = effect_type, k = NA_integer_, r = NULL, predictors = as.integer(k)))
     },
     n = function(p) engine_n_reg(p$effect_test, p$predictors, p$alpha, p$power),
+    power = function(n, plan) engine_power_reg(n, plan$effect_test, plan$predictors, plan$alpha),
+    simulate = function(n, plan) {
+      sim_reg(n, plan, plan$predictors, plan$predictors, plan$effect_test / (1 - plan$effect_test), 0)
+    },
     # Engine returns R-squared; report in the unit the user entered.
     mde = function(n, plan, power) {
       r2 <- engine_mde_reg(n, plan$predictors, plan$alpha, power)
@@ -406,6 +445,15 @@ test_spec <- list(
                         tested = as.integer(u), r2_covariates = if (f2) NA_real_ else cov))
     },
     n = function(p) engine_n_reg(p$effect_test, p$predictors, p$alpha, p$power, p$tested),
+    power = function(n, plan) engine_power_reg(n, plan$effect_test, plan$predictors, plan$alpha, plan$tested),
+    # Built from the R-squared change and the covariate R-squared, not from effect_test, so the
+    # partial R-squared conversion is checked independently. With f2 the covariates carry no signal.
+    simulate = function(n, plan) {
+      k <- plan$predictors; u <- plan$tested
+      if (plan$effect_type == "f2") return(sim_reg(n, plan, k, u, plan$effect, 0))
+      full <- plan$effect + plan$r2_covariates
+      sim_reg(n, plan, k, u, plan$effect / (1 - full), plan$r2_covariates / (1 - full))
+    },
     # Engine returns the partial R-squared; report in the unit the user entered.
     mde = function(n, plan, power) {
       r2 <- engine_mde_reg(n, plan$predictors, plan$alpha, power, plan$tested)

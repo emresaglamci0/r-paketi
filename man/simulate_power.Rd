@@ -4,14 +4,20 @@
 \alias{simulate_power}
 \title{Check a plan's power by simulation}
 \usage{
-simulate_power(plan, n = NULL, reps = 10000, seed = NULL)
+simulate_power(
+  plan,
+  n = NULL,
+  reps = 10000,
+  seed = NULL,
+  predictor_type = c("fixed", "random")
+)
 }
 \arguments{
-\item{plan}{A \code{plansize_plan} for \code{"t_independent"}, \code{"t_paired"}, \code{"anova_oneway"}, \code{"prop_two"}
-or \code{"cor_pearson"}.}
+\item{plan}{A \code{plansize_plan} from \code{\link[=plan_study]{plan_study()}}, for any of its eight tests.}
 
 \item{n}{Sample size to simulate: per group (the whole sample for \code{"t_paired"} and
-\code{"cor_pearson"}), before dropout and design effect. Default: the analytic n of the plan rounded
+\code{"cor_pearson"}, the total n for \code{"chisq_indep"}, \code{"reg_overall"} and \code{"reg_partial"}),
+before dropout and design effect. Regressions need at least \code{predictors + 2}. Default: the analytic n of the plan rounded
 up, not \code{plan$n_per_group}. Dropout and design effect are not simulated. With your own \code{n}, \code{status} compares only with the
 formula (the target rule belongs to the planned n) and a note says so.}
 
@@ -20,15 +26,21 @@ needs at least 10000; with fewer, \code{pass} and \code{status} are \code{NA} be
 
 \item{seed}{Optional whole number. With a seed the function leaves your random number stream
 unchanged; without one it uses and advances your stream like any random R function.}
+
+\item{predictor_type}{\code{"fixed"} (default, the pwrss model of the plan) or \code{"random"} (predictors
+drawn anew in every study), for \code{"reg_overall"} and \code{"reg_partial"} only. With \code{"random"},
+\code{"reg_overall"} is compared with the DMAR random-predictor power (without the target rule, since
+the plan n is for fixed predictors); without DMAR, and always for \code{"reg_partial"}, \code{status} is \code{NA}.}
 }
 \value{
-A \code{plansize_simulation} list: \verb{test, n, reps, seed, power_sim, mc_se, ci, power_analytic, diff, target, status, pass, notes} (\code{notes} are codes the print method explains).
+A \code{plansize_simulation} list: \verb{test, n, reps, seed, predictor_type, power_sim, mc_se, ci, power_analytic, reference, diff, target, status, pass, notes} (\code{reference} is \code{"pwrss"} or
+\code{"dmar"}; \code{notes} are codes the print method explains).
 }
 \description{
 Draws \code{reps} studies with the planned effect, runs the planned test on each and compares the
 share of significant results (empirical power) with the analytic power pwrss gives for the same n.
-This checks that the formula holds at this n under normal (or binomial) data and a correct effect;
-it says nothing about real data and it is not the observed power.
+This checks that the formula holds at this n under normal, binomial or multinomial data and a
+correct effect; it says nothing about real data and it is not the observed power.
 }
 \details{
 \code{status} is \code{"pass"} when empirical power is within 0.02 of the analytic power and at
@@ -36,5 +48,7 @@ least the target minus 0.02, \code{"warn"} when it is more than 0.02 above the a
 plan is safe; the formula is conservative at this n) and \code{"fail"} otherwise. \code{"warn"} is
 expected for two-sided correlations from r = .6 and one-sided from r = .5 (Fisher z is
 conservative; for example a correlation of .8 with \code{n = 10}), and for two proportions with a small p (such as .05 and
-.01), where exact binomial power exceeds the normal approximation. Do not widen the 0.02.
+.01), where exact binomial power exceeds the normal approximation, and for a small chi-square
+table with w from about .5 (such as 2 x 2 or 3 x 3 with w = .5, or 2 x 3 with w = .8 and
+\code{n = 16}). Do not widen the 0.02.
 }

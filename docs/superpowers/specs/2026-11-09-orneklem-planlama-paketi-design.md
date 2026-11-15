@@ -59,7 +59,7 @@ Pazar araştırması boşluğu "orta" buldu: güç hesabı, etki büyüklüğü 
 
 - Fonksiyon adları ve kod yorumları İngilizce, çıktı dili `lang = "tr"` ya da `"en"`.
 - S3 sınıflı tek plan nesnesi.
-- `pwrss` `Imports` içinde. `Suggests`: `pwr` ve `testthat` (test), `DMAR` (yalnız Dilim 9c'deki rastgele yordayıcı bilgi satırı; kurulu değilse satır gösterilmez, hata vermez). `effectsize` yalnızca ikinci aşamada eklenir, çünkü ilk sürümde veri analizi yoktur. `shiny` kullanılmaz.
+- `pwrss` `Imports` içinde. `Suggests`: `pwr` ve `testthat` (test), `DMAR` (Dilim 9c'deki rastgele yordayıcı bilgi satırı ve Dilim 11b'de `simulate_power(predictor_type = "random")` için genel R² testinin referans gücü; kurulu değilse satır gösterilmez, simülasyon durum vermez, hata vermez). `effectsize` yalnızca ikinci aşamada eklenir, çünkü ilk sürümde veri analizi yoktur. `shiny` kullanılmaz.
 - Lisans MIT.
 - Paket, deponun kökünde bulunur.
 - Simülasyon ayrı özellik değil, doğrulama aracıdır.

@@ -90,13 +90,18 @@ check_precision_plan <- function(x) {
 check_simulation <- function(x) {
   num <- c("power_sim", "mc_se", "power_analytic", "diff", "target")
   st <- x[["status"]]
-  ok <- inherits(x, "plansize_simulation") && is.list(x) && is.character(x$test) && length(x$test) == 1L &&
-    x$test %in% names(Filter(function(s) !is.null(s$simulate), test_spec)) &&
+  one_of <- function(v, set) is.character(v) && length(v) == 1L && v %in% set
+  ok <- inherits(x, "plansize_simulation") && is.list(x) && one_of(x$test, names(test_spec)) &&
     all(vapply(num, function(k) is_num1(x[[k]]), TRUE)) && is.numeric(x$ci) && length(x$ci) == 2L &&
     is_num1(x$n) && x$n >= 1 && x$n == round(x$n) && is_num1(x$reps) && x$reps >= 100 && all(is.finite(x$ci)) &&
     is.character(st) && length(st) == 1L && (is.na(st) || st %in% c("pass", "warn", "fail")) &&
-    identical(is.na(st), x$reps < 10000) && identical(x$pass, if (is.na(st)) NA else st == "pass") &&
-    is.character(x$notes) && all(x$notes %in% c("adjust", "n", "reps"))
+    is.character(x$notes) && all(x$notes %in% c("adjust", "n", "reps", "random", "random_no_dmar", "random_partial")) &&
+    identical(is.na(st), x$reps < 10000 || any(c("random_no_dmar", "random_partial") %in% x$notes)) &&
+    identical(x$pass, if (is.na(st)) NA else st == "pass") &&
+    one_of(x$predictor_type, if (x$test %in% c("reg_overall", "reg_partial")) c("fixed", "random") else "fixed") &&
+    one_of(x$reference, c("pwrss", "dmar")) &&
+    identical(x$reference == "dmar", "random" %in% x$notes) &&
+    identical(x$predictor_type == "random", any(startsWith(x$notes, "random")))
   if (!ok) fail("err_sim_obj", "x")
   invisible(x)
 }

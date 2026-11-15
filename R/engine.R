@@ -121,6 +121,15 @@ engine_power_props <- function(n, p1, p2, alpha, alternative) {
     std.error = "pooled", verbose = 0)$power
 }
 
+engine_power_chisq <- function(n, w, df, alpha) {
+  pwrss::power.chisq.gof(w = w, df = df, n = n, alpha = alpha, verbose = 0)$power
+}
+
+# Total n; tested = k is the overall test.
+engine_power_reg <- function(n, r2, k, alpha, tested = k) {
+  pwrss::power.f.reg(r.squared.change = r2, k.total = k, k.tested = tested, n = n, alpha = alpha, verbose = 0)$power
+}
+
 engine_power_cor <- function(n, rho, alpha, alternative) {
   pwrss::power.z.onecor(rho = abs(rho), req.sign = "+", n = n, alpha = alpha,
     alternative = alternative, verbose = 0)$power

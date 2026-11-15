@@ -1,4 +1,5 @@
-# Random-predictor information line for reg_overall (print only; the plan n stays fixed-X).
+# Random-predictor information for reg_overall: the print line and the simulation reference
+# (the plan n stays fixed-X).
 RANDOM_N_MAX <- 1e5  # above this DMAR is slow (21 s at 1e6) and gives almost the pwrss n
 
 has_dmar <- function() requireNamespace("DMAR", quietly = TRUE)
@@ -18,4 +19,15 @@ random_predictor_n <- function(plan) {
                 error = function(e) NULL, warning = function(w) NULL)
   if (length(n) != 1L || !is.finite(n) || n < 1) return(NULL)
   as.integer(ceiling(n * plan$deff / (1 - plan$dropout)))
+}
+
+# Random-predictor power of the overall F test at total n, or NULL as in random_predictor_n().
+dmar_power <- function(r2, k, n, alpha) {
+  if (!has_dmar() || n > RANDOM_N_MAX) return(NULL)
+  p <- tryCatch({
+    r <- DMAR::ss_power_R2(population_R2 = r2, p = k, alpha_level = alpha, specified_N = n,
+                           random_predictors = TRUE)
+    r$value[r$term == "actual_power"]
+  }, error = function(e) NULL, warning = function(w) NULL)
+  if (is_num1(p) && p >= 0 && p <= 1) p
 }
