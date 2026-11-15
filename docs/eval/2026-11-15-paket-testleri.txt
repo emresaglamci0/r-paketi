@@ -1,0 +1,15 @@
+ℹ Testing plansize
+[ FAIL 0 | WARN 0 | SKIP 0 | PASS 1773 ]
+---CHECK---
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking examples ... NONE
+* checking for unstated dependencies in 'tests' ... OK
+* checking tests ...
+  Running 'testthat.R'
+ OK
+* DONE
+
+Status: OK
+
+Status: OK

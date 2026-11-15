@@ -1,0 +1,27 @@
+Ek kontroller (2026-11-15, denetleyici oturumu; komutlar repo kökünden, devtools::load_all ile)
+
+1) ANOVA: eşit ağırlıklı f ve analitik güç
+   f_nat (doğal grup ağırlıkları .49/.29/.22, estimate_effects) = 0.22647
+   f_eq  (grup ortalamalarının eşit ağırlıklı SD'si / birleşik grup içi SD) = 0.2587886
+   plan_study('anova_oneway', effect = f_nat, k = 3)$n_per_group = 64
+   Analitik F gücü, n = 64/grup, f = f_eq: 1 - pf(qf(.95, 2, 189), 2, 189, ncp = 3*64*f_eq^2) = 0.9000394
+   Bootstrap (tabakalı) = 0.9055. Sonuç: INCELE değerlendirme tasarımından; paket hesabı doğru.
+
+2) reg_partial: sabit ve rastgele yordayıcı simülasyonu (simulate_power, reps = 10000, seed = 1)
+   fixed : n 150, power_sim 0.8016, mc_se 0.0040, status pass
+   random: n 150, power_sim 0.7810, mc_se 0.0041, status NA (paket reg_partial için rastgele referans vermez)
+   Bootstrap (gerçekçi veri) = 0.7665, mc_se 0.0095. random ile fark .0145, birleşik SE .0103 (~1.4 SE).
+   Sonuç: açığın çoğu rastgele yordayıcıdan; kalan fark gürültü sınırında.
+
+3) Yuvarlama: R/plan.R:120 düz ceiling(), R/validate.R:59 round_up() payı kullanılmıyor
+   n_analytic * deff / (1 - dropout) tam sayı olması gerekirken kayan nokta hatasıyla biraz üstünde kalınca +1 kişi.
+   prop_two (pwrss n'i zaten yuvarlı verir) için p1 = .70, p2 .30-.60 (0.01 adım), dropout {.05,.1,.15,.2,.3}, deff {1,1.1,1.2,1.5} ızgarasında 12 vaka.
+   Örnek: plan_study('prop_two', p1 = .70, p2 = .33, dropout = .30, deff = 1.1): n_analytic 28, tam değer 28*1.1/.7 = 44, paket 45.
+   Diğerleri: p2 .33 deff 1.2 dr .30 -> 48 yerine 49; p2 .33 deff 1.5 dr .30 -> 60 yerine 61; p2 .37 (n 35) deff 1.2 dr .30 -> 60 yerine 61.
+   Etki: grup başına +1 (güvenli tarafta), ama plan_precision ile tutarsız ve belgelenmemiş.
+
+4) t_paired: eşit SD varsayımı (paket d'yi tek ölçümün SD'siyle tanımlar, dz = d / sqrt(2(1 - r)))
+   sd(mat_on) 9.84, sd(mat_son) 11.79 (eşit değil)
+   Paketin kullandığı dz 0.2890, verideki gerçek dz = mean(fark) / sd(fark) = 0.2847
+   Planlanan n 96; gerçek dz ile analitik güç power.t.test(96, 0.2847, type = 'paired') = 0.789
+   Bootstrap = 0.792. Karar değişmez; varsayım ihlali küçük bir güç kaybı getirir, paket uyarmaz.

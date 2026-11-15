@@ -1,0 +1,276 @@
+Estimated effects:
+     d_ind   d_paired   r_paired    f_anova         p1         p2      r_cor 
+0.37997591 0.24095244 0.65242263 0.22646999 0.68862275 0.56456456 0.29284992 
+   w_chisq     r2_reg     r2_cov  r2_change    p_gecti 
+0.19779153 0.28049863 0.23311627 0.04738237 0.60600000 
+
+===== t_independent =====
+Sample size plan
+Sample size to recruit per group (includes dropout and design effect): 110 
+Total sample size to recruit (includes dropout and design effect): 220 
+
+Test: independent two-sample t test 
+Expected effect size (Cohen's d): 0.3799759 
+Basis of the effect size: prior study 
+Significance level (alpha): 0.05 
+Target power: 0.8 
+Alternative hypothesis: two-sided 
+Expected dropout: 0% 
+Design effect: 1 
+Calculation method: student_t_independent (pwrss 1.3.3) 
+
+===== t_paired =====
+Sample size plan
+Participants to recruit (each measured twice; includes dropout and design effect): 96 
+
+Test: paired t test 
+Expected effect size (Cohen's d): 0.2409524 
+Correlation between the two measurements (r): 0.6524226 
+Effect size used in the test (Cohen's dz): 0.29 
+Basis of the effect size: prior study 
+Significance level (alpha): 0.05 
+Target power: 0.8 
+Alternative hypothesis: two-sided 
+Expected dropout: 0% 
+Design effect: 1 
+Calculation method: student_t_paired (pwrss 1.3.3) 
+
+===== anova_oneway =====
+Sample size plan
+Sample size to recruit per group (includes dropout and design effect): 64 
+Total sample size to recruit (includes dropout and design effect): 192 
+
+Test: one-way ANOVA 
+Number of groups (k, equal sizes): 3 
+Expected effect size (Cohen's f): 0.22647 
+Basis of the effect size: prior study 
+Significance level (alpha): 0.05 
+Target power: 0.8 
+Expected dropout: 0% 
+Design effect: 1 
+Calculation method: f_oneway_anova (pwrss 1.3.3) 
+
+Note: this n covers the overall F test only. Post hoc comparisons are needed to find which groups differ; with a multiple-comparison correction they usually need a larger sample.
+
+===== prop_two =====
+Sample size plan
+Sample size to recruit per group (includes dropout and design effect): 238 
+Total sample size to recruit (includes dropout and design effect): 476 
+
+Test: comparison of two independent proportions (z test) 
+Expected proportion in group 1 (p1): 0.6886228 
+Expected proportion in group 2 (p2): 0.5645646 
+Difference (p1 - p2): 0.1240582 
+Basis of the effect size: prior study 
+Significance level (alpha): 0.05 
+Target power: 0.8 
+Alternative hypothesis: two-sided 
+Expected dropout: 0% 
+Design effect: 1 
+Calculation method: z_two_props_pooled (pwrss 1.3.3) 
+
+===== cor_pearson =====
+Sample size plan
+Participants to recruit (includes dropout and design effect): 90 
+
+Test: test of a Pearson correlation coefficient (Fisher z) 
+Expected correlation (r): 0.2928499 
+Basis of the effect size: prior study 
+Significance level (alpha): 0.05 
+Target power: 0.8 
+Alternative hypothesis: two-sided 
+Expected dropout: 0% 
+Design effect: 1 
+Calculation method: fisher_z_cor (pwrss 1.3.3) 
+
+===== chisq_indep =====
+Sample size plan
+Participants to recruit (includes dropout and design effect): 247 
+
+Test: chi-square test of independence 
+Expected effect size (Cohen's w): 0.1977915 
+Table size (rows x columns): 3 x 2; degrees of freedom: 2 
+Basis of the effect size: prior study 
+Significance level (alpha): 0.05 
+Target power: 0.8 
+Expected dropout: 0% 
+Design effect: 1 
+Calculation method: chisq_indep_w (pwrss 1.3.3) 
+
+===== reg_overall =====
+Sample size plan
+Participants to recruit (includes dropout and design effect): 39 
+
+Test: multiple regression (overall R-squared F test) 
+Expected effect size (R-squared): 0.2804986 
+Number of predictors: 5 
+Basis of the effect size: prior study 
+Significance level (alpha): 0.05 
+Target power: 0.8 
+Expected dropout: 0% 
+Design effect: 1 
+Calculation method: f_reg_overall_r2 (pwrss 1.3.3) 
+Participants if the predictors are random (includes dropout and design effect): 42. Predictors that are measured rather than set by the design (most observational studies) are random; recruiting this number keeps the target power. The methods text reports the fixed-predictor plan above. 
+
+===== reg_partial =====
+Sample size plan
+Participants to recruit (includes dropout and design effect): 150 
+
+Test: multiple regression (partial R-squared / R-squared change F test) 
+Expected R-squared change (tested predictors): 0.04738237 
+Tested predictors: 2 of 5; R-squared without them: 0.2331163 
+Equivalent partial R-squared / f-squared: 0.06 / 0.07 
+Basis of the effect size: prior study 
+Significance level (alpha): 0.05 
+Target power: 0.8 
+Expected dropout: 0% 
+Design effect: 1 
+Calculation method: f_reg_partial_r2 (pwrss 1.3.3) 
+
+===== plan_precision =====
+Precision-based sample size plan
+Required sample size: 212
+
+Expected proportion: 0.606
+Margin of error (half-width): 0.05
+Confidence level: 95%
+Population size: 500
+Expected dropout: 0%
+Design effect: 1
+Calculation method: Cochran, normal approximation (Wald)
+
+===== RESULTS =====
+                 test     effect n_plan n_evrenden_buyuk power_boot       mc_se
+1       t_independent 0.37997591    110            FALSE     0.7805 0.009255262
+2            t_paired 0.24095244     96            FALSE     0.7920 0.009075682
+3        anova_oneway 0.22646999     64            FALSE     0.9055 0.006541015
+4            prop_two 0.12405819    238             TRUE     0.8065 0.008833395
+5         cor_pearson 0.29284992     90            FALSE     0.8180 0.008627746
+6         chisq_indep 0.19779153    247            FALSE     0.8045 0.008867913
+7         reg_overall 0.28049863     39            FALSE     0.7830 0.009217131
+8         reg_partial 0.04738237    150            FALSE     0.7665 0.009459856
+9  anova_oneway_dogal 0.22646999    192            FALSE     0.7990 0.008960999
+10     plan_precision 0.60600000    212            FALSE     0.9615 0.004302194
+   n_na  durum n_warn
+1     0  KALDI      0
+2     0  KALDI      0
+3     0 INCELE      0
+4     0  KALDI      0
+5     0  KALDI      0
+6     0  KALDI      0
+7     0  KALDI      0
+8     0 INCELE      0
+9     0  KALDI      0
+10    0  KALDI      0
+ [1] ""                                                              
+ [2] ""                                                              
+ [3] ""                                                              
+ [4] ""                                                              
+ [5] ""                                                              
+ [6] ""                                                              
+ [7] "DMAR random n = 42; boot power at X = 0.827 (n_na 0, n_warn 0)"
+ [8] "no random-predictor n in package for reg_partial"              
+ [9] "natural proportions, no stratification"                        
+[10] "share FPC Wald half-width > .05: 0.494"                        
+
+===== PILOT =====
+planlanamaz share: 0.132
+n median: 81.5  max: 264040
+share n_per_group > 500: 0.191
+true power median: 0.674
+share true power < .50: 0.382
+plansize warnings during pilot plans (unique, count):
+< table of extent 0 >
+
+===== OTHER FUNCTIONS =====
+
+--- t_independent ---
+Smallest detectable effect (Cohen's d)
+ Recruited per group Effective per group Power Smallest detectable effect
+                 110                 110  0.80                      0.379
+                 110                 110  0.90                      0.439
+                 110                 110  0.95                      0.488
+Örneklem büyüklüğü, bağımsız iki örneklem t testi için R ortamında plansize (sürüm 0.0.0.9000) ve pwrss (sürüm 1.3.3) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir. Planlamada etki büyüklüğü Cohen d = 0.3799759 olarak alınmıştır. Bu değer önceki bir çalışmadan alınmıştır. Alfa = .05, güç = .80 ve iki yönlü test için gerekli örneklem büyüklüğü grup başına 110, toplamda 220 katılımcıdır.
+An a priori power analysis was conducted in R with the plansize package (version 0.0.0.9000), using pwrss (version 1.3.3), to determine the sample size required for the planned analysis (independent two-sample t test). The effect size used for planning was Cohen's d = 0.3799759. This value was taken from a prior study. For a two-sided test with alpha = .05 and power = .80, the required sample size was 110 participants per group (220 in total).
+simulate_power status: pass 
+
+--- t_paired ---
+Smallest detectable effect (Cohen's d, assuming the same r)
+ Recruited participants Effective participants Power Smallest detectable effect
+                     96                     96  0.80                      0.241
+                     96                     96  0.90                      0.279
+                     96                     96  0.95                      0.310
+Örneklem büyüklüğü, bağımlı örneklemler t testi için R ortamında plansize (sürüm 0.0.0.9000) ve pwrss (sürüm 1.3.3) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir. Planlamada etki büyüklüğü, ortalama değişimin tek bir ölçümün standart sapmasına oranı olarak tanımlanan Cohen d = 0.2409524 olarak alınmıştır; iki ölçüm arasındaki korelasyon r = .6524226 varsayıldığında bu değer dz = 0.29 değerine karşılık gelmektedir. Bu değer önceki bir çalışmadan alınmıştır. Alfa = .05, güç = .80 ve iki yönlü test için gerekli örneklem büyüklüğü, her biri iki kez ölçülecek 96 katılımcıdır.
+An a priori power analysis was conducted in R with the plansize package (version 0.0.0.9000), using pwrss (version 1.3.3), to determine the sample size required for the planned analysis (paired t test). The effect size used for planning was Cohen's d = 0.2409524, defined as the mean change divided by the standard deviation of a single measurement; with an assumed correlation of r = .6524226 between the two measurements, this corresponds to dz = 0.29. This value was taken from a prior study. For a two-sided test with alpha = .05 and power = .80, the required sample size was 96 participants, each measured twice.
+simulate_power status: pass 
+
+--- anova_oneway ---
+Smallest detectable effect (Cohen's f)
+ Recruited per group Effective per group Power Smallest detectable effect
+                  64                  64  0.80                      0.226
+                  64                  64  0.90                      0.259
+                  64                  64  0.95                      0.286
+Örneklem büyüklüğü, tek yönlü varyans analizi (ANOVA) için R ortamında plansize (sürüm 0.0.0.9000) ve pwrss (sürüm 1.3.3) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir. Planlamada eşit büyüklükte 3 grup için etki büyüklüğü Cohen f = 0.22647 olarak alınmıştır. Bu değer önceki bir çalışmadan alınmıştır. Alfa = .05 ve güç = .80 için genel F testinde gerekli örneklem büyüklüğü grup başına 64, toplamda 192 katılımcıdır. Bu örneklem büyüklüğü yalnızca genel F testi için geçerlidir; anlamlı bir sonuç grup ortalamalarının hepsinin eşit olmadığını gösterir, ancak hangilerinin farklı olduğunu göstermez. Farklı grupları belirlemek için post hoc karşılaştırmalar gerekir; çoklu karşılaştırma düzeltmesi uygulandığında bunlar genellikle genel testten daha büyük bir örneklem gerektirir.
+An a priori power analysis was conducted in R with the plansize package (version 0.0.0.9000), using pwrss (version 1.3.3), to determine the sample size required for the planned analysis (one-way ANOVA). The effect size used for planning was Cohen's f = 0.22647 for 3 groups of equal size. This value was taken from a prior study. For the overall F test with alpha = .05 and power = .80, the required sample size was 64 participants per group (192 in total). This sample size applies to the overall F test only; a significant result indicates that not all group means are equal, but not which ones differ. Post hoc comparisons are needed to identify the differing groups; with a correction for multiple comparisons, they usually require a larger sample than the overall test.
+simulate_power status: pass 
+
+--- prop_two ---
+Detectable proportion in group 1 (group 2 at its planned value)
+ Recruited per group Effective per group Power Detectable p1
+                 238                 238  0.80         0.688
+                 238                 238  0.90         0.707
+                 238                 238  0.95         0.722
+Örneklem büyüklüğü, bağımsız iki oran karşılaştırması (z testi) için R ortamında plansize (sürüm 0.0.0.9000) ve pwrss (sürüm 1.3.3) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir. Planlamada oranlar 1. grupta .6886228 ve 2. grupta .5645646 olarak alınmıştır; iki oran arasındaki fark (1. grup eksi 2. grup) .1240582 düzeyindedir. Bu değer önceki bir çalışmadan alınmıştır. Süreklilik düzeltmesi uygulanmayan, havuzlanmış standart hatalı bağımsız iki oran z testi (iki yönlü), alfa = .05 ve güç = .80 için gerekli örneklem büyüklüğü grup başına 238, toplamda 476 katılımcıdır.
+An a priori power analysis was conducted in R with the plansize package (version 0.0.0.9000), using pwrss (version 1.3.3), to determine the sample size required for the planned analysis, a comparison of two independent proportions (z test). The proportions used for planning were .6886228 in group 1 and .5645646 in group 2, a difference (group 1 minus group 2) of .1240582. This value was taken from a prior study. For a two-sided z test for two independent proportions with a pooled standard error and no continuity correction, with alpha = .05 and power = .80, the required sample size was 238 participants per group (476 in total).
+simulate_power status: pass 
+
+--- cor_pearson ---
+Smallest detectable correlation (r)
+ Recruited participants Effective participants Power Smallest detectable effect
+                     90                     90  0.80                      0.292
+                     90                     90  0.90                      0.334
+                     90                     90  0.95                      0.368
+Örneklem büyüklüğü, Pearson korelasyon katsayısının anlamlılık testi (Fisher z) için R ortamında plansize (sürüm 0.0.0.9000) ve pwrss (sürüm 1.3.3) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir. Planlamada korelasyon r = .2928499 olarak alınmıştır. Bu değer önceki bir çalışmadan alınmıştır. Fisher z dönüşümüne dayalı H0: ρ = 0 testi (iki yönlü), alfa = .05 ve güç = .80 için gerekli örneklem büyüklüğü 90 katılımcıdır.
+An a priori power analysis was conducted in R with the plansize package (version 0.0.0.9000), using pwrss (version 1.3.3), to determine the sample size required for the planned analysis, a test of a Pearson correlation coefficient (Fisher z). The correlation used for planning was r = .2928499. This value was taken from a prior study. For a two-sided test of H0: ρ = 0 based on the Fisher z transformation, with alpha = .05 and power = .80, the required sample size was 90 participants.
+simulate_power status: pass 
+
+--- chisq_indep ---
+Smallest detectable effect (Cohen's w)
+ Recruited participants Effective participants Power Smallest detectable effect
+                    247                    247  0.80                      0.198
+                    247                    247  0.90                      0.226
+                    247                    247  0.95                      0.250
+Örneklem büyüklüğü, ki-kare bağımsızlık testi için R ortamında plansize (sürüm 0.0.0.9000) ve pwrss (sürüm 1.3.3) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir. Planlamada, serbestlik derecesi 2 olan 3 x 2 çapraz tablo için etki büyüklüğü Cohen w = 0.1977915 olarak alınmıştır. Bu değer önceki bir çalışmadan alınmıştır. Süreklilik düzeltmesi uygulanmayan Pearson ki-kare bağımsızlık testinde alfa = .05 ve güç = .80 için gerekli örneklem büyüklüğü toplam 247 katılımcıdır.
+An a priori power analysis was conducted in R with the plansize package (version 0.0.0.9000), using pwrss (version 1.3.3), to determine the sample size required for the planned analysis (chi-square test of independence). The effect size used for planning was Cohen's w = 0.1977915 for a 3 x 2 contingency table with 2 degrees of freedom. This value was taken from a prior study. For Pearson's chi-square test of independence without continuity correction, with alpha = .05 and power = .80, the required sample size was 247 participants in total.
+simulate_power status: pass 
+
+--- reg_overall ---
+Smallest detectable effect (R-squared)
+ Recruited participants Effective participants Power Smallest detectable effect
+                     39                     39  0.80                      0.279
+                     39                     39  0.90                      0.333
+                     39                     39  0.95                      0.375
+Örneklem büyüklüğü, çoklu regresyon (genel R² F testi) için R ortamında plansize (sürüm 0.0.0.9000) ve pwrss (sürüm 1.3.3) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir. Planlamada 5 yordayıcılı regresyon modeli için etki büyüklüğü R² = 0.2804986 olarak alınmıştır. Bu değer önceki bir çalışmadan alınmıştır. Alfa = .05 ve güç = .80 için regresyon modelinin genel F testinde (H0: R² = 0) gerekli örneklem büyüklüğü toplam 39 katılımcıdır. Yordayıcılar sabit varsayılmıştır; rastgele yordayıcılarda güç biraz düşüktür.
+An a priori power analysis was conducted in R with the plansize package (version 0.0.0.9000), using pwrss (version 1.3.3), to determine the sample size required for the planned analysis, a multiple regression (overall R-squared F test). The effect size used for planning was R-squared = 0.2804986 for a regression model with 5 predictors. This value was taken from a prior study. For the overall F test of the regression model (H0: R-squared = 0) with alpha = .05 and power = .80, the required sample size was 39 participants in total. Predictors were treated as fixed; with random predictors the power is slightly lower.
+simulate_power status: pass 
+
+--- reg_partial ---
+Smallest detectable effect (R-squared change)
+ Recruited participants Effective participants Power Smallest detectable effect
+                    150                    150  0.80                      0.047
+                    150                    150  0.90                      0.061
+                    150                    150  0.95                      0.073
+Örneklem büyüklüğü, çoklu regresyon (kısmi R² / ΔR² F testi) için R ortamında plansize (sürüm 0.0.0.9000) ve pwrss (sürüm 1.3.3) paketleri kullanılarak yapılan a priori güç analiziyle belirlenmiştir. Planlamada, diğer yordayıcıların R² = 0.2331163 açıkladığı bir modele 2 / 5 yordayıcı eklendiğinde R² değişimi 0.04738237 olarak alınmıştır. Bu değer önceki bir çalışmadan alınmıştır. Alfa = .05 ve güç = .80 için test edilen yordayıcıların katkısına ilişkin F testinde (H0: R² değişimi = 0) gerekli örneklem büyüklüğü toplam 150 katılımcıdır. Yordayıcılar sabit varsayılmıştır; rastgele yordayıcılarda güç biraz daha düşüktür.
+An a priori power analysis was conducted in R with the plansize package (version 0.0.0.9000), using pwrss (version 1.3.3), to determine the sample size required for the planned analysis, a multiple regression (partial R-squared / R-squared change F test). The effect size used for planning was an R-squared change of 0.04738237 when adding 2 of 5 predictors to a model whose other predictors explain R-squared = 0.2331163. This value was taken from a prior study. For the F test of the contribution of the tested predictors (H0: R-squared change = 0) with alpha = .05 and power = .80, the required sample size was 150 participants in total. Predictors were treated as fixed; with random predictors the power is somewhat lower.
+simulate_power status: pass 
+
+===== BAD INPUTS =====
+t_effect_neg: ERROR class=simpleError | Argument 'effect' must be a single positive finite number.
+basis_observed: ERROR class=simpleError | effect_basis = "observed" is not allowed: an effect observed in the current data cannot justify the sample size of the same data. Use sensitivity() to report the smallest effect your sample can detect.
+prop_p1_eq_p2: ERROR class=simpleError | Arguments 'p1' and 'p2' must differ; equal proportions have no difference to detect.
+chisq_one_sided: ERROR class=simpleError | The chi-square test of independence has no direction; do not set 'alternative'.
+partial_tested_eq_predictors: ERROR class=simpleError | Argument 'tested' must be a whole number from 1 to 'predictors' - 1; to test all predictors together use test = "reg_overall".
+power_1: ERROR class=simpleError | Argument 'power' must be a single number from 0.01 to 0.99.
+dropout_1: ERROR class=simpleError | Argument 'dropout' must be a single number from 0 (inclusive) up to but not including 1.
+
+Elapsed: 2.104662 mins 
